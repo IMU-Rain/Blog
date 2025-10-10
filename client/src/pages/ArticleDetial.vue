@@ -32,7 +32,6 @@ const getArticleData = () => {
     if (res.status === 200) {
       articleData.value = res.data.article;
       coverURL.value = res.data.url;
-      console.log(articleData.value);
     }
   });
 };

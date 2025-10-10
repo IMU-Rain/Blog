@@ -55,6 +55,7 @@ onMounted(() => {
     .poem-content {
       font-weight: 1000;
       text-align: right;
+      text-wrap: wrap;
       margin-bottom: 10px;
     }
     .poem-title {

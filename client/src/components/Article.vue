@@ -19,8 +19,7 @@
 <script lang="ts" setup>
 import dayjs from "dayjs";
 import type { Articles } from "../types/article";
-const props = defineProps<{ articleData: Articles }>();
-console.log(props)
+defineProps<{ articleData: Articles }>();
 </script>
 <style scoped lang="less">
 @import "../style/theme.less";
