@@ -5,6 +5,9 @@ const articleSchema = new mongoose.Schema({
     required: true,
     trim: true,
   },
+  cover: {
+    type: String,
+  },
   content: {
     type: String,
     required: true,
@@ -37,7 +40,12 @@ const articleSchema = new mongoose.Schema({
     type: Date,
     default: Date.now(),
   },
+  containImg: {
+    type: [String],
+    default: [],
+  },
 });
+// 文章搜索权重
 articleSchema.index(
   {
     title: "text",
@@ -52,8 +60,9 @@ articleSchema.index(
     },
   }
 );
+// 保存前自动更新时间
 articleSchema.pre("save", function (next) {
   this.updateAt = new Date();
   next();
 });
-module.exports=mongoose.model('Article',articleSchema)
+module.exports = mongoose.model("Article", articleSchema);
