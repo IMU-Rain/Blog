@@ -1,24 +1,29 @@
 <template>
   <div class="albums-container">
-    <div
-      class="album-container"
-      v-masonry
-      transition-duration="0.3s"
-      item-selector=".item"
-    >
-      <Photo
-        v-for="photo in photoList"
-        :photo="photo"
-        class="item"
-        v-masonry-tile
-        @click="showphotoDetail(photo)"
-      ></Photo>
+    <div class="albums-container-midden">
+      <div
+        class="album-container"
+        v-masonry
+        transition-duration="0.3s"
+        item-selector=".item"
+      >
+        <Photo
+          v-for="(photo, index) in photoList"
+          :photo="photo"
+          class="item"
+          v-masonry-tile
+          @click="showphotoDetail(index)"
+        ></Photo>
+      </div>
+      <PhotoDetail
+        :photo="selectPhoto"
+        :index="index"
+        v-if="selectPhoto"
+        @close="selectPhoto = null"
+        @prev="switchPhoto($event - 1)"
+        @next="switchPhoto($event + 1)"
+      ></PhotoDetail>
     </div>
-    <PhotoDetail
-      :photo="selectPhoto"
-      v-if="selectPhoto"
-      @close="selectPhoto = null"
-    ></PhotoDetail>
   </div>
 </template>
 
@@ -26,10 +31,10 @@
 import { onMounted, ref } from "vue";
 import Photo from "../components/Photo.vue";
 import photo from "../api/photo";
-import type { PhotoType } from "../types/photo";
 import PhotoDetail from "../components/PhotoDetail.vue";
 const photoList = ref();
 const selectPhoto = ref();
+const index = ref();
 const getPhotoList = () => {
   photo.getAllPhotos().then((res) => {
     if (res.status === 200) {
@@ -37,8 +42,15 @@ const getPhotoList = () => {
     }
   });
 };
-const showphotoDetail = (data: PhotoType) => {
-  selectPhoto.value = data;
+const showphotoDetail = (selectIndex: number) => {
+  selectPhoto.value = photoList.value[selectIndex];
+  index.value = selectIndex;
+};
+const switchPhoto = (index: number) => {
+  if (index === -1 || index === photoList.value.length) {
+    return;
+  }
+  showphotoDetail(index);
 };
 onMounted(() => {
   getPhotoList();
@@ -46,9 +58,14 @@ onMounted(() => {
 </script>
 
 <style scoped lang="less">
-.album-container {
-  margin: 0 auto;
+.albums-container {
+  max-width: 100%;
+  .albums-container-midden {
+    margin: 0 auto;
+    width: inherit;
+  }
 }
+
 .item {
   width: calc(33.33% - 16px); // 三列布局，每列减去间距
   margin: 0 8px 16px;

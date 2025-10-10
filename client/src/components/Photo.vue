@@ -7,7 +7,6 @@
 <script lang="ts" setup>
 import type { PhotoType } from "../types/photo";
 const props = defineProps<{ photo: PhotoType }>();
-console.log(props);
 </script>
 <style scoped lang="less">
 @import "../style/theme.less";
