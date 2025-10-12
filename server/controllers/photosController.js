@@ -12,16 +12,22 @@ const uploadSingle = async (req, res) => {
   try {
     const { file } = req;
     const album = req.query.album?.trim();
-    // 生成缩略图
-    const exif = await exifr.parse(file.path, {
+    // 获取exif信息
+    let exif = {};
+    exif = await exifr.parse(file.path, {
       gps: true,
       tiff: true,
       ifd0: true,
       exif: true,
     });
+    if (!exif) {
+      exif = await exifr.parse(file.path);
+    }
+    // 图片浏览路径
     const url = album
       ? `/${UPLOAD_DIR_NAME}/${album}/${file.filename}`
       : `/${UPLOAD_DIR_NAME}/${file.filename}`;
+    // 创建缩略图路径
     const absInput = file.path;
     const absOutputDir = album
       ? path.join(UPLOAD_DIR_ABS, album)
@@ -31,6 +37,7 @@ const uploadSingle = async (req, res) => {
       absOutputDir,
       file.filename
     );
+    // 创建图片存储路径
     const relDir = album
       ? `/${UPLOAD_DIR_NAME}/${album}`
       : `/${UPLOAD_DIR_NAME}`;
@@ -48,10 +55,12 @@ const uploadSingle = async (req, res) => {
       camera: {
         make: exif.Make || "未知",
         model: exif.Model || "未知",
-        iso: exif.ISO || "未知",
+        iso: exif.ISO || null,
         focalLength: exif.FocalLength || null,
         shutterSpeed: exif?.ExposureTime || null,
       },
+      width: exif.ExifImageWidth || exif.ImageWidth,
+      height: exif.ExifImageHeight || exif.ImageHeight,
       updateAt: Date.now(),
     });
     const saved = await photo.save();
@@ -59,7 +68,7 @@ const uploadSingle = async (req, res) => {
       saved,
     });
   } catch (err) {
-    return res.status(500).json({ err });
+    return res.status(500).json({ message: err.message });
   }
 };
 // 多张图片上传
@@ -68,13 +77,17 @@ const uploadMultiple = async (req, res) => {
     return res.status(400).json({ error: "文件为空，请重新检查" });
   }
   try {
-    const files = req.files.map(async (file) => {
-      const exif = await exifr.parse(file.path, {
+    req.files.map(async (file) => {
+      let exif = {};
+      exif = await exifr.parse(file.path, {
         gps: true,
         tiff: true,
         ifd0: true,
         exif: true,
       });
+      if (!exif) {
+        exif = await exifr.parse(file.path);
+      }
       const album = req.query.album?.trim();
       const tags = req.body.tags;
       const absInput = file.path;
@@ -105,17 +118,19 @@ const uploadMultiple = async (req, res) => {
         camera: {
           make: exif.Make || "未知",
           model: exif.Model || "未知",
-          iso: exif.ISO || "未知",
+          iso: exif.ISO || null,
           focalLength: exif.FocalLength || null,
           shutterSpeed: exif?.ExposureTime || null,
         },
+        width: exif.ExifImageWidth || exif.ImageWidth,
+        height: exif.ExifImageHeight || exif.ImageHeight,
         updateAt: Date.now(),
       });
       return await photo.save();
     });
     res.status(200).json({ message: "所有文件上传成功" });
   } catch (err) {
-    return res.status(500).json({ err });
+    return res.status(500).json({ message: err.message });
   }
 };
 // 单张图片删除
@@ -130,16 +145,18 @@ const deleteSingle = async (req, res) => {
       return res.status(404).json({ message: "图片未找到" });
     }
     const filepath = path.join(__dirname, "..", photo.path);
+    const thumbnailPath = path.join(__dirname, "..", photo.thumbnailPath);
     try {
       await fs.unlink(filepath);
+      await fs.unlink(thumbnailPath);
     } catch (err) {
       console.warn("文件删除失败（可能已不存在）：", err.message);
     }
     await photoSchema.findByIdAndDelete(photoId);
-    return res.status(201).json({ message: "图片删除成功" });
+    return res.status(200).json({ message: "图片删除成功" });
   } catch (err) {
     console.log(err);
-    return res.status(500).json({ error: err, message: "服务器错误" });
+    return res.status(500).json({ message: err.message });
   }
 };
 // 多张图片删除
@@ -151,19 +168,19 @@ const deleteMultiple = async (req, res) => {
   try {
     photoId.map(async (id) => {
       const photo = await photoSchema.findById(id);
-      // const filepath = path.resolve(process.cwd(), photo.path);
       const filepath = path.join(__dirname, "..", photo.path);
+      const thumbnailPath = path.join(__dirname, "..", photo.thumbnailPath);
       try {
         await fs.unlink(filepath);
+        await fs.unlink(thumbnailPath);
       } catch (err) {
         console.warn("文件删除失败（可能已不存在）：", err.message);
       }
       await photoSchema.findOneAndDelete(id);
     });
-    return res.status(201).json({ message: "图片删除成功" });
+    return res.status(200).json({ message: "图片删除成功" });
   } catch (err) {
-    console.log(err);
-    return res.status(500).json({ error: err, message: "服务器错误" });
+    return res.status(500).json({ message: err.message });
   }
 };
 // 获取全部照片
@@ -175,9 +192,7 @@ const getImages = async (req, res) => {
     const fullPhotos = photos.map((photo) => {
       return {
         ...photo.toObject(),
-        thumbnailUrl: `${process.env.BASE_URL}${
-          photo.thumbnailPath
-        }`,
+        thumbnailUrl: `${process.env.BASE_URL}${photo.thumbnailPath}`,
         url: `${process.env.BASE_URL}${photo.path}`,
       };
     });
@@ -186,7 +201,7 @@ const getImages = async (req, res) => {
       data: fullPhotos,
     });
   } catch (err) {
-    res.status(500).json({ error: err, message: "服务器错误" });
+    res.status(500).json({ message: err.message });
   }
 };
 // 根据相册获取照片
@@ -209,10 +224,9 @@ const getImagesByAlbum = async (req, res) => {
         };
       }
     );
-    return res.status(201).json({ message: "获取成功", photos, album: album });
+    return res.status(200).json({ message: "获取成功", photos, album: album });
   } catch (err) {
-    console.log(err);
-    return res.status(500).json(err);
+    return res.status(500).json({ message: err.message });
   }
 };
 module.exports = {

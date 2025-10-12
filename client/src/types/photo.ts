@@ -7,6 +7,8 @@ interface PhotoType {
     focalLength: number;
     shutterSpeed: number;
   };
+  width: number;
+  height: number;
   filename: string;
   album: string;
   tags: string[];
