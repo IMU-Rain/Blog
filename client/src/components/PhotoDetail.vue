@@ -10,6 +10,11 @@
       <div class="photo-detail" @click="emit('close')" v-show="isImageLoading">
         <img :src="photoData.url" class="photo" @load="isImageLoading = true" />
         <ul class="photo-meta" v-if="photoData.camera.iso">
+          <li>
+            <span>{{
+              dayjs(photoData.shotTime).format("YYYY年MM月DD日")
+            }}</span>
+          </li>
           <li class="photo-brand">
             <img src="../assets/camera.svg" class="camera-icon" />
             <span
@@ -43,6 +48,7 @@
 <script lang="ts" setup name="PhotoDetail">
 import { toRef, ref, onMounted, watch } from "vue";
 import type { PhotoType } from "../types/photo";
+import dayjs from "dayjs";
 const props = defineProps<{ photo: PhotoType; index: number }>();
 const photoIndex = toRef(props, "index");
 const photoData = toRef(props, "photo");
@@ -156,7 +162,6 @@ const emit = defineEmits<{
       rgba(255, 255, 255, 0) 80%
     );
     background-size: 400%;
-
     animation: shine 2s ease-in-out infinite;
   }
 
@@ -190,6 +195,7 @@ const emit = defineEmits<{
       }
     }
     .switch-btn {
+      user-select: none;
       display: none;
     }
   }

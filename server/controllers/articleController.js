@@ -1,23 +1,55 @@
 const path = require("path");
 const fsPromise = require("fs/promises");
 const Article = require("../models/article");
+const ArticlePhoto = require("../models/articlePhoto");
 const { UPLOAD_DIR_NAME_COVER } = require("../middlewares/uploads");
+const {
+  successResponse,
+  errorResponse,
+} = require("../middlewares/responseHandler");
+const {
+  PARAM_MISSING,
+  DB_ERROR,
+  PARAM_ERROR,
+  RESOURCE_DELETE_FAIL,
+} = require("../utils/errorTypes");
 // 创建文章
 const createArticle = async (req, res) => {
+  let articleData;
   try {
     const cover = req.file;
-    const articleData = JSON.parse(req.body.article);
-    if (cover) {
-      articleData.cover = `/${UPLOAD_DIR_NAME_COVER}/${cover.filename}`;
+    if (!cover) {
+      errorResponse(res, PARAM_MISSING, "封面图片未上传", 400);
     }
+    try {
+      articleData = JSON.parse(req.body.article);
+    } catch (parseErr) {
+      return errorResponse(
+        res,
+        PARAM_ERROR,
+        `JSON格式错误:${parseErr.message},位置:${parseErr.position}`,
+        400
+      );
+    }
+    articleData.cover = `/${UPLOAD_DIR_NAME_COVER}/${cover.filename}`;
     const article = new Article(articleData);
     const saved = await article.save();
-    res.status(200).json(saved);
+    successResponse(res, saved, "文章创建成功");
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    if (err.name === "ValidationError") {
+      // 文章校验失败
+      const validationError = Object.values(err.errors)
+        .map((item) => `${item.path}:${item.message}`)
+        .join(";");
+      return errorResponse(res, PARAM_ERROR, err.message, 400);
+    } else if (err.message.includes("file") || err.message.includes("upload")) {
+      // 文章封面相关问题
+      return errorResponse(res, SERVER_ERROR, err.message, 400);
+    }
+    errorResponse(res, DB_ERROR, err.message, 500);
   }
 };
-// 获取文章封面
+// 获取文章目录信息
 const getArticleInfo = async (req, res) => {
   try {
     const articles = await Article.find().sort({ createAt: -1 });
@@ -31,22 +63,28 @@ const getArticleInfo = async (req, res) => {
         createAt: article.createAt,
       };
     });
-    res.status(200).json(datas);
+    successResponse(res, datas);
   } catch (err) {
-    res.status(500).json({ message: err });
+    errorResponse(res, DB_ERROR, err.message, 500);
   }
 };
 // 获取单篇文章
 const getArticleById = async (req, res) => {
+  const id = req.params.id;
   try {
-    const article = await Article.findById(req.params.id);
+    const article = await Article.findById(id);
     const url = `${req.protocol}://${req.get("host")}${article.cover}`;
     if (!article) {
-      return res.status(404).json({ error: "文章不存在" });
+      return errorResponse(
+        res,
+        PARAM_ERROR,
+        `未从数据库中找到id:${id}的文章`,
+        404
+      );
     }
-    return res.status(200).json({ article, url });
+    successResponse(res, { article, url });
   } catch (err) {
-    res.status(500).json({ error: err });
+    errorResponse(res, SERVER_ERROR, err.message, 500);
   }
 };
 // 更新文章
@@ -59,12 +97,16 @@ const updateArticle = async (req, res) => {
       { new: true } // 返回更新后的对象
     );
     if (!update) {
-      res.status(404).json({ error: "文章未找到" });
-    } else {
-      res.json({ message: update });
+      return errorResponse(
+        res,
+        RESOURCE_NOT_FIND,
+        `未从数据库中找到文章id:${id}`,
+        404
+      );
     }
+    successResponse(res, update, "文章更新成功");
   } catch (err) {
-    res.status(400).json({ error: err });
+    errorResponse(res, SERVER_ERROR, err.message, "500");
   }
 };
 // 删除文章
@@ -73,18 +115,32 @@ const deleteArticle = async (req, res) => {
     const id = req.params.id;
     const article = await Article.findById(id);
     if (!article) {
-      return res.status(404).json({ error: "文章未找到" });
+      return errorResponse(
+        res,
+        RESOURCE_DELETE_FAIL,
+        `数据库中未找到id:${id}的文章`,
+        404
+      );
     }
-    const filepath = path.join(__dirname, "..", article.cover);
     try {
-      await fsPromise.unlink(filepath);
+      article.containImg.map(async (id) => {
+        const img = await ArticlePhoto.findById(id);
+        fsPromise.unlink(img.path);
+        await ArticlePhoto.deleteOne({ id });
+      });
+    } catch (err) {
+      console.warn("文件删除失败（可能已不存在）：", err.message);
+    }
+    const coverPath = path.join(__dirname, "..", article.cover);
+    try {
+      await fsPromise.unlink(coverPath);
     } catch (err) {
       console.warn("文件删除失败（可能已不存在）：", err.message);
     }
     const deleted = await Article.findByIdAndDelete(id);
-    return res.json({ message: deleted });
+    return successResponse(res, deleted, "文章删除成功");
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    return errorResponse(res, RESOURCE_DELETE_FAIL, err.message, 500);
   }
 };
 module.exports = {

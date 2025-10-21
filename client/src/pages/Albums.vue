@@ -1,11 +1,15 @@
 <template>
   <div class="albums-container">
     <div class="albums-container-midden">
+      <LoadingSkeleton v-if="loading" />
+      <ErrorSkeleton v-else-if="error" />
+      <div class="error" v-else-if="error">Error,Plz retry!</div>
       <div
         class="album-container"
         v-masonry
         transition-duration="0.3s"
         item-selector=".item"
+        v-else
       >
         <Photo
           v-for="(photo, index) in photoList"
@@ -28,33 +32,32 @@
 </template>
 
 <script lang="ts" setup>
-import { onMounted, ref } from "vue";
+import { ref } from "vue";
 import Photo from "../components/Photo.vue";
-import photo from "../api/photo";
+import { getAllPhotos } from "../api/photo";
 import PhotoDetail from "../components/PhotoDetail.vue";
-const photoList = ref();
+import { useRequest } from "../hooks/useRequest";
+import type { PhotoType } from "../types/photo";
+import LoadingSkeleton from "../components/LoadingSkeleton.vue";
+import ErrorSkeleton from "../components/ErrorSkeleton.vue";
+
 const selectPhoto = ref();
 const index = ref();
-const getPhotoList = () => {
-  photo.getAllPhotos().then((res) => {
-    if (res.status === 200) {
-      photoList.value = res.data.data;
-    }
-  });
-};
+const {
+  data: photoList,
+  loading,
+  error,
+} = useRequest<[PhotoType]>(getAllPhotos, { immediate: true });
 const showphotoDetail = (selectIndex: number) => {
-  selectPhoto.value = photoList.value[selectIndex];
+  selectPhoto.value = photoList.value![selectIndex];
   index.value = selectIndex;
 };
 const switchPhoto = (index: number) => {
-  if (index === -1 || index === photoList.value.length) {
+  if (index === -1 || index === photoList.value!.length) {
     return;
   }
   showphotoDetail(index);
 };
-onMounted(() => {
-  getPhotoList();
-});
 </script>
 
 <style scoped lang="less">
@@ -63,6 +66,30 @@ onMounted(() => {
   .albums-container-midden {
     margin: 0 auto;
     width: inherit;
+    .loading {
+      font-weight: 1000;
+      font-size: 50px;
+      background-clip: text;
+      color: transparent;
+      background-image: linear-gradient(
+        90deg,
+        black 0%,
+        #888 30%,
+        #fff 50%,
+        #888 70%,
+        black 80%
+      );
+      background-size: 400%;
+      animation: shine 2s ease infinite;
+    }
+    @keyframes shine {
+      0% {
+        background-position: 100% center;
+      }
+      100% {
+        background-position: 0% center;
+      }
+    }
   }
 }
 

@@ -1,9 +1,12 @@
 <template>
   <div class="about-container">
-    <div class="about" v-if="aboutData">
+    <div class="about">
+      <LoadingSkeleton v-if="loading" />
+      <ErrorSkeleton v-else-if="error" />
       <article
         v-html="md.render(aboutData.content)"
         class="about-article"
+        v-else
       ></article>
     </div>
     <Aside></Aside>
@@ -12,18 +15,16 @@
 
 <script lang="ts" setup>
 import Aside from "../components/Aside.vue";
+
 import getAbout from "../api/about";
-import { onMounted, ref } from "vue";
 import MarkdownIt from "markdown-it";
+import { useRequest } from "../hooks/useRequest";
+import LoadingSkeleton from "../components/LoadingSkeleton.vue";
+import ErrorSkeleton from "../components/ErrorSkeleton.vue";
 const md = new MarkdownIt();
-const aboutData = ref();
-onMounted(() => {
-  getAbout().then((res) => {
-    if (res.status === 200) {
-      aboutData.value = res.data;
-    }
-  });
-});
+
+const { loading, error, data: aboutData, run } = useRequest(getAbout);
+run();
 </script>
 
 <style lang="less">
@@ -37,6 +38,7 @@ onMounted(() => {
     padding: 20px;
     background-color: @card-background-color;
     color: @text-color;
+    transition: height 100s ease;
     .about-article {
       color: @accent-color;
       h1 {

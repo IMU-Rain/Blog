@@ -37,11 +37,11 @@ onUnmounted(() => {
 @import "../style/theme.less";
 .container {
   margin-bottom: 40px;
-  width: max(100%,99vw) ;
+  width: max(100%, 99vw);
   padding: 30px 10%;
-  transition: 0.2s ease all;
   display: flex;
   justify-content: space-between;
+  align-items: center;
   background-color: @card-background-color;
   .title {
     font-weight: 700;
@@ -52,6 +52,7 @@ onUnmounted(() => {
     display: flex;
     gap: 40px;
     font-size: 24px;
+    align-items: center;
     .nav-item {
       overflow: hidden;
       cursor: pointer;
@@ -75,6 +76,17 @@ onUnmounted(() => {
     }
     .nav-item.active {
       opacity: 1;
+    }
+    .theme-toggle {
+      background-color: transparent;
+      color: white;
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      img {
+        width: 28px;
+        height: 28px;
+      }
     }
   }
   &.sticky {

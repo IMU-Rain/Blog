@@ -1,13 +1,15 @@
 <template>
   <div class="article-detail-container">
-    <div v-if="articleData" class="article-detail">
-      <img :src="coverURL" class="cover-img" />
-      <h1 class="article-title">{{ articleData.title }}</h1>
+    <LoadingSkeleton v-if="loading" />
+    <ErrorSkeleton v-else-if="error" />
+    <div v-else class="article-detail">
+      <img :src="articleData?.url" class="cover-img" />
+      <h1 class="article-title">{{ articleData?.article.title }}</h1>
       <span class="createAt">{{
-        dayjs(articleData.createAt).format("YYYY-MM-DD")
+        dayjs(articleData?.article.createAt).format("YYYY-MM-DD")
       }}</span>
       <article
-        v-html="md.render(articleData.content)"
+        v-html="md.render(articleData?.article.content || '')"
         class="article-detail-content"
       ></article>
     </div>
@@ -17,27 +19,24 @@
 
 <script lang="ts" setup>
 import { useRoute } from "vue-router";
-import article from "../api/article";
-import { onMounted, ref } from "vue";
+import { getArticleDetail } from "../api/article";
 import Aside from "../components/Aside.vue";
 import MarkdownIt from "markdown-it";
 import dayjs from "dayjs";
+import { useRequest } from "../hooks/useRequest";
+import type { ArticleDetail } from "../types/article";
+import LoadingSkeleton from "../components/LoadingSkeleton.vue";
+import ErrorSkeleton from "../components/ErrorSkeleton.vue";
 const md = new MarkdownIt();
 const route = useRoute();
 const articleID = String(route.params.id);
-const articleData = ref();
-const coverURL = ref();
-const getArticleData = () => {
-  article.getArticleDetail(articleID).then((res) => {
-    if (res.status === 200) {
-      articleData.value = res.data.article;
-      coverURL.value = res.data.url;
-    }
-  });
-};
-onMounted(() => {
-  getArticleData();
-});
+const {
+  data: articleData,
+  error,
+  run,
+  loading,
+} = useRequest<ArticleDetail>(getArticleDetail);
+run({ id: articleID });
 </script>
 
 <style lang="less">

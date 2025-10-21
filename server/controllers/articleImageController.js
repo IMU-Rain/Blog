@@ -6,9 +6,14 @@ const {
   UPLOAD_DIR_NAME_ARTICLE,
 } = require("../middlewares/uploads");
 const ArticleImage = require("../models/articlePhoto");
+const {
+  errorResponse,
+  successResponse,
+} = require("../middlewares/responseHandler");
+const { SERVER_ERROR, PARAM_MISSING } = require("../utils/errorTypes");
 const uploadArticleImage = async (req, res) => {
   if (!req.files) {
-    return res.status(400).json({ message: "未接收到文件" });
+    return errorResponse(res, PARAM_MISSING, "未接收到文件", 400);
   }
   try {
     let imageURL = await Promise.all(
@@ -23,19 +28,20 @@ const uploadArticleImage = async (req, res) => {
         await fsPromise.unlink(file.path);
         const path = `${absOutputDir}/${thumbnailName}`;
         const url = `${process.env.BASE_URL}/${UPLOAD_DIR_NAME_ARTICLE}/${thumbnailName}`;
-        new ArticleImage({
+        const saved = await new ArticleImage({
           url,
           originalName: file.originalname,
           thumbnailName,
           path,
         }).save();
-        return { originalname: file.originalname, url };
+        const detail = { url, id: saved.id };
+        console.log(saved);
+        return { originalname: file.originalname, detail };
       })
     );
-    res.status(200).json(imageURL);
+    successResponse(res, imageURL, "所有文件上传成功");
   } catch (err) {
-    console.log(err);
-    res.status(500).json({ error: err.message });
+    errorResponse(res, SERVER_ERROR, err.message, 500);
   }
 };
 module.exports = {

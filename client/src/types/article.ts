@@ -8,19 +8,24 @@ interface ArticleRaw {
 }
 interface ArticleDetail {
   article: {
+    containImg: string[];
     _id: string;
     title: string;
     cover: string;
     content: string;
     excerpt: string;
     status: string;
-    tags: string[];
+    tags?: string[];
     views: string;
-    createAt: string;
+    createAt?: string;
     updateAt: string;
     __v: string;
   };
   url: string;
 }
+interface ArticleRawResponseType {
+  message: string;
+  data: [ArticleRaw];
+}
 type Articles = Readonly<ArticleRaw>;
-export type { Articles ,ArticleDetail};
+export type { Articles, ArticleRaw, ArticleDetail, ArticleRawResponseType };

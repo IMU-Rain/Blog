@@ -18,8 +18,8 @@
 
 <script lang="ts" setup>
 import dayjs from "dayjs";
-import type { Articles } from "../types/article";
-defineProps<{ articleData: Articles }>();
+import type { ArticleRaw } from "../types/article";
+defineProps<{ articleData: ArticleRaw }>();
 </script>
 <style scoped lang="less">
 @import "../style/theme.less";
@@ -29,6 +29,7 @@ defineProps<{ articleData: Articles }>();
   display: flex;
   max-height: fit-content;
   .cover {
+    transition: 0.2s ease transform;
     background-color: transparent;
     width: 60%;
     max-height: 300px;
@@ -91,6 +92,9 @@ defineProps<{ articleData: Articles }>();
   transition: all 0.3s ease;
   &:hover {
     transform: scale(1.02);
+    .cover {
+      transform: scale((1.02));
+    }
     box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
   }
 }

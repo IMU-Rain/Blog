@@ -53,6 +53,10 @@ const photoSchema = new mongoose.Schema({
   thumbnailPath: { type: String, default: "" },
   width: Number,
   height: Number,
+  shotTime: {
+    type: Date,
+    default: Date.now,
+  },
   updateAt: {
     type: Date,
     default: Date.now,

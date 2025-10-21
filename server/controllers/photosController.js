@@ -4,10 +4,19 @@ const { UPLOAD_DIR_NAME, UPLOAD_DIR_ABS } = require("../middlewares/uploads");
 const photoSchema = require("../models/photo");
 const exifr = require("exifr");
 const { mkThumbnail } = require("../utils/image");
+const {
+  successResponse,
+  errorResponse,
+} = require("../middlewares/responseHandler");
+const {
+  PARAM_MISSING,
+  SERVER_ERROR,
+  DB_ERROR,
+} = require("../utils/errorTypes");
 // 单张图片上传
 const uploadSingle = async (req, res) => {
   if (!req.file) {
-    return res.status(400).json({ message: "未接收到文件" });
+    return errorResponse(res, PARAM_MISSING, "未接收到文件", 400);
   }
   try {
     const { file } = req;
@@ -37,6 +46,9 @@ const uploadSingle = async (req, res) => {
       absOutputDir,
       file.filename
     );
+    const shotTime = new Date(
+      exif.DateTimeOriginal || exif.CreateDate || Date.now
+    );
     // 创建图片存储路径
     const relDir = album
       ? `/${UPLOAD_DIR_NAME}/${album}`
@@ -59,22 +71,21 @@ const uploadSingle = async (req, res) => {
         focalLength: exif.FocalLength || null,
         shutterSpeed: exif?.ExposureTime || null,
       },
+      shotTime,
       width: exif.ExifImageWidth || exif.ImageWidth,
       height: exif.ExifImageHeight || exif.ImageHeight,
       updateAt: Date.now(),
     });
     const saved = await photo.save();
-    res.status(200).json({
-      saved,
-    });
+    successResponse(res, saved, "图片上传成功");
   } catch (err) {
-    return res.status(500).json({ message: err.message });
+    errorResponse(res, SERVER_ERROR, err.message, 500);
   }
 };
 // 多张图片上传
 const uploadMultiple = async (req, res) => {
   if (!req.files) {
-    return res.status(400).json({ error: "文件为空，请重新检查" });
+    return errorResponse(res, PARAM_MISSING, "文件为空，请重新检查", 400);
   }
   try {
     req.files.map(async (file) => {
@@ -128,21 +139,21 @@ const uploadMultiple = async (req, res) => {
       });
       return await photo.save();
     });
-    res.status(200).json({ message: "所有文件上传成功" });
+    successResponse(res, null, "所有文件上传成功");
   } catch (err) {
-    return res.status(500).json({ message: err.message });
+    errorResponse(res, SERVER_ERROR, err.message, 500);
   }
 };
 // 单张图片删除
 const deleteSingle = async (req, res) => {
   const photoId = await req.params.id;
   if (!photoId) {
-    return res.status(100).json({ message: "未查询到id" });
+    errorResponse(res, PARAM_MISSING, "id参数缺失", 400);
   }
   try {
     const photo = await photoSchema.findById(photoId);
     if (!photo) {
-      return res.status(404).json({ message: "图片未找到" });
+      return errorResponse(res, RESOURCE_NOT_FIND, "未从数据中获取到文件", 404);
     }
     const filepath = path.join(__dirname, "..", photo.path);
     const thumbnailPath = path.join(__dirname, "..", photo.thumbnailPath);
@@ -150,21 +161,22 @@ const deleteSingle = async (req, res) => {
       await fs.unlink(filepath);
       await fs.unlink(thumbnailPath);
     } catch (err) {
-      console.warn("文件删除失败（可能已不存在）：", err.message);
+      errorResponse(res, RESOURCE_DELETE_FAIL, err.message, 404);
     }
-    await photoSchema.findByIdAndDelete(photoId);
-    return res.status(200).json({ message: "图片删除成功" });
+    const deleted = await photoSchema.findByIdAndDelete(photoId);
+    successResponse(res, deleted, "文件删除成功");
   } catch (err) {
-    console.log(err);
-    return res.status(500).json({ message: err.message });
+    errorResponse(res, SERVER_ERROR, err.message, 500);
   }
 };
 // 多张图片删除
 const deleteMultiple = async (req, res) => {
   const { photoId } = req.body;
   if (!photoId) {
-    return res.status(300).json({ message: "未获取到id!" });
+    errorResponse(res, PARAM_MISSING, photoId, 400);
   }
+  const successList = [];
+  const failList = [];
   try {
     photoId.map(async (id) => {
       const photo = await photoSchema.findById(id);
@@ -174,59 +186,66 @@ const deleteMultiple = async (req, res) => {
         await fs.unlink(filepath);
         await fs.unlink(thumbnailPath);
       } catch (err) {
-        console.warn("文件删除失败（可能已不存在）：", err.message);
+        return failList.push({ id: id, error: err.message });
       }
       await photoSchema.findOneAndDelete(id);
+      successList.push({ id: id });
     });
-    return res.status(200).json({ message: "图片删除成功" });
+    successResponse(res, { successList, failList }, "删除操作完成");
   } catch (err) {
-    return res.status(500).json({ message: err.message });
+    errorResponse(res, SERVER_ERROR, err.message, 500);
   }
 };
 // 获取全部照片
 const getImages = async (req, res) => {
   try {
-    const album = req.query.album?.trim();
-    const filter = album ? { album } : {};
-    const photos = await photoSchema.find(filter).sort({ updateAt: -1 });
+    const photos = await photoSchema
+      .find()
+      .sort({ shotTime: -1, updateAt: -1 });
     const fullPhotos = photos.map((photo) => {
+      photo.shotTime = photo.shotTime.toISOString();
       return {
         ...photo.toObject(),
         thumbnailUrl: `${process.env.BASE_URL}${photo.thumbnailPath}`,
         url: `${process.env.BASE_URL}${photo.path}`,
       };
     });
-    res.status(200).json({
-      message: "获取照片成功",
-      data: fullPhotos,
-    });
+    successResponse(res, fullPhotos, "图片列表获取成功");
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    errorResponse(res, SERVER_ERROR, err.message, 500);
   }
 };
 // 根据相册获取照片
 const getImagesByAlbum = async (req, res) => {
-  if (!req.query) {
-    return res.status(400).json({ error: "未获取到相册名" });
-  }
   try {
     const album = req.query.album;
+    if (!album) {
+      return errorResponse(res, PARAM_MISSING, "未获取到相册名", 400);
+    }
     const filter = { album };
-    const photos = (await photoSchema.find(filter).sort({ updateAt: -1 })).map(
-      (photo) => {
-        return {
-          id: photo._id,
-          thumbnailUrl: `${req.protocol}://${req.get("host")}${
-            photo.thumbnailPath
-          }`,
-          url: `${req.protocol}://${req.get("host")}${photo.path}`,
-          ...photo.toObject(),
-        };
-      }
-    );
-    return res.status(200).json({ message: "获取成功", photos, album: album });
+    const photos = (
+      await photoSchema.find(filter).sort({ shotAt: -1, updateAt: -1 })
+    ).map((photo) => {
+      return {
+        id: photo._id,
+        thumbnailUrl: `${req.protocol}://${req.get("host")}${
+          photo.thumbnailPath
+        }`,
+        url: `${req.protocol}://${req.get("host")}${photo.path}`,
+        ...photo.toObject(),
+      };
+    });
+    if (photos.length === 0) {
+      return errorResponse(
+        res,
+        DB_ERROR,
+        `数据库中未查询到${album}的文件`,
+        404
+      );
+    }
+    return successResponse(res, { photos, album: album });
   } catch (err) {
-    return res.status(500).json({ message: err.message });
+    return errorResponse(res, SERVER_ERROR, err.message, 500);
   }
 };
 module.exports = {

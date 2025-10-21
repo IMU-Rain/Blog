@@ -1,6 +1,5 @@
 import axios from "./axios";
 
-const getAllPhotos = () => {
-  return axios.get("/photos");
+export const getAllPhotos = () => {
+  return axios.get("/photos").then((res) => res.data.data);
 };
-export default { getAllPhotos };

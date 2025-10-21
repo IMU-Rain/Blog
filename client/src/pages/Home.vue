@@ -1,6 +1,8 @@
 <template>
   <div class="container">
-    <div class="article-titles" v-if="articles">
+    <LoadingSkeleton v-if="loading" />
+    <ErrorSkeleton v-else-if="error" />
+    <div class="article-titles" v-else>
       <Article v-for="article in articles" :articleData="article"></Article>
     </div>
     <Aside></Aside>
@@ -8,21 +10,19 @@
 </template>
 
 <script lang="ts" setup>
-import { onMounted, ref } from "vue";
 import Article from "../components/Article.vue";
 import Aside from "../components/Aside.vue";
-import article from "../api/article";
-const articles = ref();
-const getArtiles = () => {
-  article.getArticles().then((res) => {
-    if (res.status === 200) {
-      articles.value = res.data;
-    }
-  });
-};
-
-onMounted(() => {
-  getArtiles();
+import { getArticles } from "../api/article";
+import { useRequest } from "../hooks/useRequest";
+import type { ArticleRaw } from "../types/article";
+import LoadingSkeleton from "../components/LoadingSkeleton.vue";
+import ErrorSkeleton from "../components/ErrorSkeleton.vue";
+const {
+  data: articles,
+  error,
+  loading,
+} = useRequest<[ArticleRaw]>(getArticles, {
+  immediate: true,
 });
 </script>
 

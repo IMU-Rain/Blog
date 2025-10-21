@@ -9,6 +9,7 @@ interface PhotoType {
   };
   width: number;
   height: number;
+  shotTime: string;
   filename: string;
   album: string;
   tags: string[];
