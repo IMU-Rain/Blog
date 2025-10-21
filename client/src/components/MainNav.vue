@@ -1,18 +1,24 @@
 <template>
-  <div class="container" :class="{ sticky: isSticky }">
+  <div class="container" :class="{ sticky: scrollStore.isScroll }">
     <div class="title">
       <router-link to="/">Max Byte</router-link>
     </div>
     <nav>
       <ul>
         <li class="nav-item">
-          <router-link to="/" active-class="active">首页</router-link>
+          <router-link to="/" active-class="active" class="router-link"
+            >首页</router-link
+          >
         </li>
-        <li class="nav-item" active-class="active">
-          <router-link to="/albums">照片</router-link>
+        <li class="nav-item">
+          <router-link to="/albums" active-class="active" class="router-link"
+            >照片</router-link
+          >
         </li>
-        <li class="nav-item" active-class="active">
-          <router-link to="/about">关于</router-link>
+        <li class="nav-item">
+          <router-link to="/about" active-class="active" class="router-link"
+            >关于</router-link
+          >
         </li>
       </ul>
     </nav>
@@ -20,10 +26,11 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted, onUnmounted } from "vue";
-const isSticky = ref(false);
+import { onMounted, onUnmounted } from "vue";
+import { useScrollsStore } from "../store/pinia";
+const scrollStore = useScrollsStore();
 const handleScroll = () => {
-  isSticky.value = window.scrollY > 0;
+  scrollStore.updateScroll(window.scrollY);
 };
 onMounted(() => {
   window.addEventListener("scroll", handleScroll);
@@ -37,12 +44,13 @@ onUnmounted(() => {
 @import "../style/theme.less";
 .container {
   margin-bottom: 40px;
-  width: max(100%, 99vw);
+  width: 100%;
   padding: 30px 10%;
   display: flex;
   justify-content: space-between;
   align-items: center;
   background-color: @card-background-color;
+  transition: all 0.8s ease;
   .title {
     font-weight: 700;
     font-size: 30px;
@@ -59,33 +67,35 @@ onUnmounted(() => {
       opacity: 0.8;
       letter-spacing: 3px;
       position: relative;
-    }
-    .nav-item::after {
-      content: "";
-      width: 100%;
-      position: absolute;
-      height: 3px;
-      background-color: @text-color;
-      left: 0;
-      bottom: 0;
-      transform: scale(0);
-      transition: transform 0.3s ease;
-    }
-    .nav-item:hover::after {
-      transform: scale(1);
-    }
-    .nav-item.active {
-      opacity: 1;
-    }
-    .theme-toggle {
-      background-color: transparent;
-      color: white;
-      display: flex;
-      align-items: center;
-      cursor: pointer;
-      img {
-        width: 28px;
-        height: 28px;
+      .router-link {
+        &::after {
+          content: "";
+          width: 100%;
+          position: absolute;
+          height: 3px;
+          background-color: @text-color;
+          left: 0;
+          bottom: 0;
+          transform: scale(0);
+          transition: transform 0.3s ease;
+        }
+        &:hover::after {
+          transform: scale(1);
+        }
+        .active {
+          opacity: 1;
+        }
+        .theme-toggle {
+          background-color: transparent;
+          color: white;
+          display: flex;
+          align-items: center;
+          cursor: pointer;
+          img {
+            width: 28px;
+            height: 28px;
+          }
+        }
       }
     }
   }
@@ -111,8 +121,11 @@ onUnmounted(() => {
     nav > ul {
       .nav-item {
         color: @dark-primary-color;
-        &::after {
-          background-color: @dark-primary-color;
+        .router-link {
+          &::after {
+            background-color: @dark-text-color;
+            opacity: 0.8;
+          }
         }
       }
     }
