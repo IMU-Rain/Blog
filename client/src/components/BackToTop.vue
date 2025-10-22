@@ -27,6 +27,9 @@ const scrollToTop = () => {
   border-radius: 50%;
   cursor: pointer;
   opacity: 0;
+  position: fixed;
+  right: 200px;
+  bottom: 200px;
   pointer-events: none;
   transition: opacity 0.4s ease, background-color 0.25s ease;
   display: flex;
@@ -45,6 +48,11 @@ const scrollToTop = () => {
 .show {
   opacity: 1;
   pointer-events: auto;
+}
+@media (max-width: 768px){
+   .back-to-top-btn{
+    display: none;
+   }
 }
 @media (prefers-color-scheme: dark) {
   .back-to-top-btn {

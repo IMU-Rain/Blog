@@ -26,18 +26,8 @@
 </template>
 
 <script lang="ts" setup>
-import { onMounted, onUnmounted } from "vue";
 import { useScrollsStore } from "../store/pinia";
 const scrollStore = useScrollsStore();
-const handleScroll = () => {
-  scrollStore.updateScroll(window.scrollY);
-};
-onMounted(() => {
-  window.addEventListener("scroll", handleScroll);
-});
-onUnmounted(() => {
-  window.removeEventListener("scroll", handleScroll);
-});
 </script>
 
 <style scoped lang="less">
@@ -64,10 +54,10 @@ onUnmounted(() => {
     .nav-item {
       overflow: hidden;
       cursor: pointer;
-      opacity: 0.8;
       letter-spacing: 3px;
       position: relative;
       .router-link {
+        transition: all 0.3s ease;
         &::after {
           content: "";
           width: 100%;
@@ -77,24 +67,11 @@ onUnmounted(() => {
           left: 0;
           bottom: 0;
           transform: scale(0);
-          transition: transform 0.3s ease;
+          transition: all 0.3s ease;
         }
-        &:hover::after {
+        &.active::after {
+          opacity: 0.8;
           transform: scale(1);
-        }
-        .active {
-          opacity: 1;
-        }
-        .theme-toggle {
-          background-color: transparent;
-          color: white;
-          display: flex;
-          align-items: center;
-          cursor: pointer;
-          img {
-            width: 28px;
-            height: 28px;
-          }
         }
       }
     }
@@ -108,14 +85,97 @@ onUnmounted(() => {
 }
 @media (max-width: 768px) {
   .container {
-    padding: 15px 0px;
+    backdrop-filter: blur(3px);
+    padding: 2% 5%;
     justify-content: center;
+    position: fixed;
+    top: 99%;
+    width: 80%;
+    transform: translateY(-100%);
+    left: 10%;
+    z-index: 1000;
+    border-radius: 40px;
+    margin-bottom: 0;
+    opacity: 0.85;
+    overflow: visible;
+    height: fit-content;
+    nav {
+      height: fit-content;
+      width: 100%;
+      ul {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: fit-content;
+        gap: 15%;
+        .nav-item {
+          overflow: visible;
+          .router-link {
+            padding: 15px 0px;
+            width: 100%;
+            display: block;
+            user-select: none;
+            filter: blur(1px);
+            &::after {
+              width: 180%;
+              bottom: 2.5%;
+              left: -45%;
+              height: 95%;
+              border-radius: 35px;
+              background-color: transparent;
+            }
+            &.active {
+              animation: scale 0.4s;
+              transform: scale(1.1);
+              filter: none;
+            }
+            &.active::after {
+              opacity: 0.8;
+              transform: scale(1.1);
+              animation: scale 0.4s;
+            }
+          }
+        }
+      }
+    }
+    &.sticky {
+      position: fixed;
+      top: 99%;
+    }
   }
   .title {
     display: none;
   }
+  @keyframes scale {
+    0% {
+      transform: scale(0.9);
+    }
+    25% {
+      transform: scale(1.2);
+    }
+    50% {
+      transform: scale(1);
+    }
+    100% {
+      transform: scale(1.1);
+    }
+  }
 }
 @media (prefers-color-scheme: dark) {
+  @media (max-width: 768px) {
+    .container {
+      nav > ul {
+        .nav-item {
+          .router-link {
+            &::after {
+              background-color: transparent;
+              opacity: 0.8;
+            }
+          }
+        }
+      }
+    }
+  }
   .container {
     background-color: @dark-card-background-color;
     nav > ul {
