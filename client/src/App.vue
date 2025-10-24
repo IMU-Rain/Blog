@@ -1,6 +1,8 @@
 <template>
   <MainNav></MainNav>
-  <router-view class="router-view"></router-view>
+  <transition name="fade" mode="out-in">
+    <router-view class="router-view"></router-view>
+  </transition>
   <BackToTop class="back-to-top-btn" />
 </template>
 
@@ -33,5 +35,19 @@ onUnmounted(() => {
     width: 99vw;
     overflow: hidden;
   }
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+  transform: scale(0.8);
+}
+.fade-enter-active,
+.fade-leave-active {
+  transition: all 0.5s ease;
+}
+.fade-enter-to,
+.fade-leave-from {
+  opacity: 1;
+  transform: scale(1);
 }
 </style>

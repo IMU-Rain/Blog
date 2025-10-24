@@ -4,16 +4,12 @@ const cors = require("cors");
 const fs = require("fs");
 const path = require("path");
 const app = express();
+const uploadPath = path.resolve(__dirname, "../uploads");
 require("dotenv").config();
 // 中间件
 app.use(cors());
 app.use(express.json());
-// 创建文件夹
-const uploadsDir = path.join(__dirname, "uploads");
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
-}
-app.use("/uploads", express.static(uploadsDir));
+
 // 连接数据库
 mongoose
   .connect("mongodb://localhost:27017/blog")
@@ -28,6 +24,7 @@ app.use("/api/articles", articleRoutes);
 app.use("/api/photos", photoRoutes);
 app.use("/api/about", aboutRoutes);
 app.use("/api/articleimg", articleImageRoutes);
+app.use("/uploads", express.static(uploadPath));
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log("后端服务已启动");

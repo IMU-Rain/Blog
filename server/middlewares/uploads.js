@@ -3,10 +3,10 @@ const path = require("path");
 const fsPromises = require("fs/promises");
 // 允许的文件类型
 const ALLOWED_MIME = ["image/jpeg", "image/png", "image/gif", "image/webp"];
-const UPLOAD_DIR_NAME = process.env.UPLOAD_DIR || "uploads";
-const UPLOAD_DIR_NAME_COVER = process.env.UPLOAD_DIR || "uploads/covers";
+const UPLOAD_DIR_NAME = process.env.UPLOAD_DIR || "../uploads";
+const UPLOAD_DIR_NAME_COVER = process.env.UPLOAD_DIR || "../uploads/covers";
 const UPLOAD_DIR_NAME_ARTICLE =
-  process.env.UPLOAD_DIR || "uploads/articleimage";
+  process.env.UPLOAD_DIR || "../uploads/articleimage";
 // 上传的绝对路径
 const UPLOAD_DIR_ABS = path.join(__dirname, "..", UPLOAD_DIR_NAME);
 const UPLOAD_DIR_ABS_COVER = path.join(__dirname, "..", UPLOAD_DIR_NAME_COVER);
@@ -20,6 +20,8 @@ const UPLOAD_DIR_ABS_ARTICLE = path.join(
 async function ensureUploadDir(params) {
   try {
     await fsPromises.mkdir(UPLOAD_DIR_ABS, { recursive: true });
+    await fsPromises.mkdir(UPLOAD_DIR_ABS_COVER, { recursive: true });
+    await fsPromises.mkdir(UPLOAD_DIR_ABS_ARTICLE, { recursive: true });
   } catch (err) {
     throw err;
   }

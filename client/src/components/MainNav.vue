@@ -116,6 +116,9 @@ const scrollStore = useScrollsStore();
             display: block;
             user-select: none;
             filter: blur(1px);
+            &:active {
+              background-color: transparent;
+            }
             &::after {
               width: 180%;
               bottom: 2.5%;

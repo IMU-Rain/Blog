@@ -48,6 +48,7 @@ const {
   loading,
   error,
 } = useRequest<[PhotoType]>(getAllPhotos, { immediate: true });
+
 const showphotoDetail = (selectIndex: number) => {
   selectPhoto.value = photoList.value![selectIndex];
   index.value = selectIndex;
