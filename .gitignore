@@ -11,3 +11,5 @@ yarn-error.log*
 
 # 环境变量文件
 .env
+# 上传测试文件
+TestArticleUpload.json

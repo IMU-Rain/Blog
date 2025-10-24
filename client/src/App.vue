@@ -1,8 +1,10 @@
 <template>
   <MainNav></MainNav>
-  <transition name="fade" mode="out-in">
-    <router-view class="router-view"></router-view>
-  </transition>
+  <router-view v-slot="{ Component }" class="router-view">
+    <transition name="fade" mode="out-in">
+      <component :is="Component" />
+    </transition>
+  </router-view>
   <BackToTop class="back-to-top-btn" />
 </template>
 

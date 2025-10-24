@@ -41,10 +41,10 @@ const createArticle = async (req, res) => {
       const validationError = Object.values(err.errors)
         .map((item) => `${item.path}:${item.message}`)
         .join(";");
-      return errorResponse(res, PARAM_ERROR, err.message, 400);
+      return errorResponse(res, PARAM_ERROR, err.message, 500);
     } else if (err.message.includes("file") || err.message.includes("upload")) {
       // 文章封面相关问题
-      return errorResponse(res, SERVER_ERROR, err.message, 400);
+      return errorResponse(res, SERVER_ERROR, err.message, 500);
     }
     errorResponse(res, DB_ERROR, err.message, 500);
   }
