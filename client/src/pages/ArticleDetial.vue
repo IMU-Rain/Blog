@@ -120,6 +120,9 @@ run({ id: articleID });
       blockquote {
         padding-left: 20px;
         border-left: 4px solid rgba(120, 120, 120, 0.3);
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
       }
       ul {
         display: flex;
