@@ -19,11 +19,13 @@ mongoose
 const articleRoutes = require("./routes/article");
 const photoRoutes = require("./routes/photo");
 const aboutRoutes = require("./routes/about");
+const duxiuIndexRoutes=require('./routes/duxiuIndex')
 const articleImageRoutes = require("./routes/articleImage");
 app.use("/api/articles", articleRoutes);
 app.use("/api/photos", photoRoutes);
 app.use("/api/about", aboutRoutes);
 app.use("/api/articleimg", articleImageRoutes);
+app.use("/api/duxiuIndex",duxiuIndexRoutes)
 app.use("/uploads", express.static(uploadPath));
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
