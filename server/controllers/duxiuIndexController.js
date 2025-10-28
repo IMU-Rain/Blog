@@ -5,12 +5,11 @@ const {
 const duxiuIndexSchema = require("../models/duxiuIndex");
 const { PARAM_MISSING, SERVER_ERROR } = require("../utils/errorTypes");
 const createDuxiuIndex = async (req, res) => {
-  const data = req.body;
-  if (!data.year || !data.month || !data.income || !data.expense) {
-    errorResponse(res, PARAM_MISSING, String(req.body), 201);
-  }
   try {
-    const { year, month, income, expense } = data;
+    const { year, month, income, expense } = req.body;
+    if (!year || !month || !income || !expense) {
+      return errorResponse(res, PARAM_MISSING, req.body, 201);
+    }
     const newDuxiuIndex = new duxiuIndexSchema({
       year,
       month,
@@ -25,9 +24,9 @@ const createDuxiuIndex = async (req, res) => {
 };
 const getDuxiuIndex = async (req, res) => {
   try {
-    const duxiuIndexDatas = await duxiuIndexSchema.find({});
-    const data = [];
-
+    const duxiuIndexDatas = await duxiuIndexSchema
+      .find()
+      .sort({ year: 1, month: 1 });
     duxiuIndexDatas.map((duxiuIndexData) => {
       return {
         month: duxiuIndexData.month,
@@ -41,8 +40,20 @@ const getDuxiuIndex = async (req, res) => {
 const updateDuxiuIndex = async (req, res) => {
   try {
     const { year, month, income, expense } = req.body;
-    const data = duxiuIndexSchema.find({ year, month });
-  } catch (err) {}
+    if (!year || !month || !income || !expense) {
+      return errorResponse(res, PARAM_MISSING, req.body, 201);
+    }
+    const duxiuIndex = (income / expense).toFixed(2);
+    const saved = await duxiuIndexSchema.findOneAndUpdate(
+      { year, month },
+      { income, expense, duxiuIndex },
+      { new: true }
+    );
+    successResponse(res, saved, "独秀指数更新成功");
+  } catch (err) {
+    console.log(err.message);
+    errorResponse(res, SERVER_ERROR, err.message, 500);
+  }
 };
 module.exports = {
   getDuxiuIndex,
