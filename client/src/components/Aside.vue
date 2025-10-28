@@ -12,6 +12,7 @@ import PoemAside from "./PoemAside.vue";
 
 <style scoped lang="less">
 .aside {
+  overflow: visible;
   display: flex;
   flex-direction: column;
   gap: 30px;

@@ -4,9 +4,9 @@
       <LoadingSkeleton v-if="loading" />
       <ErrorSkeleton v-else-if="error" />
       <article
+        v-else-if="aboutData && aboutData.content"
         v-html="md.render(aboutData.content)"
         class="about-article"
-        v-else
       ></article>
     </div>
     <Aside></Aside>
@@ -30,6 +30,7 @@ run();
 <style lang="less">
 @import "../style/theme.less";
 .about-container {
+  overflow: visible;
   display: grid;
   grid-template-columns: 11fr 4fr;
   gap: 30px;

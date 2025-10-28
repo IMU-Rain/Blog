@@ -27,6 +27,9 @@ import DuxiuIndex from "../components/DuxiuIndex.vue";
 @media (prefers-color-scheme: dark) {
   .duxiuindex-container {
     background-color: @dark-card-background-color;
+    &:hover {
+      box-shadow: 0 0 15px 2px rgba(255, 255, 255, 0.3);
+    }
   }
 }
 </style>

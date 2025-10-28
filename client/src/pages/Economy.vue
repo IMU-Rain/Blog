@@ -74,7 +74,6 @@ onMounted(() => {
       xData.value.push(`${data.year}年${data.month}月`);
       yData.value.push(data.duxiuIndex);
     });
-    console.log(datas.value);
     initChart(xData.value, yData.value);
   });
 });

@@ -66,7 +66,7 @@ onMounted(() => {
   }
 }
 @media (prefers-color-scheme: dark) {
-  .aside {
+  .poem-aside {
     background-color: @dark-card-background-color;
     .welcome-word {
       color: @dark-accent-color;

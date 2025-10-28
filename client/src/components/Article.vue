@@ -27,6 +27,7 @@ defineProps<{ articleData: ArticleRaw }>();
   background-color: @card-background-color;
   overflow: hidden;
   display: flex;
+  user-select: none;
   max-height: fit-content;
   .cover {
     transition: 0.2s ease transform;
@@ -115,6 +116,9 @@ defineProps<{ articleData: ArticleRaw }>();
 @media (prefers-color-scheme: dark) {
   .article-container {
     background-color: @dark-card-background-color;
+    &:hover {
+      box-shadow: 0 0 15px 2px rgba(255, 255, 255, 0.3);
+    }
     .meta {
       .title {
         color: @dark-primary-color;

@@ -1,6 +1,7 @@
 # Node.js 依赖
 node_modules/
-
+dist/
+build/
 # 上传的文件
 uploads/
 
@@ -11,5 +12,9 @@ yarn-error.log*
 
 # 环境变量文件
 .env
+
 # 上传测试文件
 TestArticleUpload.json
+
+# 前端请求通用文件
+client/src/api/axios.ts

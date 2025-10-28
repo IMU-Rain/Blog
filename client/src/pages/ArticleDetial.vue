@@ -66,7 +66,9 @@ const {
   run,
   loading,
 } = useRequest<ArticleDetail>(getArticleDetail);
-run({ id: articleID });
+run({ id: articleID }).then(() => {
+  document.title = String(articleData.value?.article.title);
+});
 </script>
 
 <style lang="less">

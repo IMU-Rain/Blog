@@ -32,4 +32,12 @@ const router = createRouter({
   history: createWebHistory(),
   routes,
 });
+router.beforeEach((to, _from, next) => {
+  if (to.name === "Home") {
+    document.title = "Max Byte";
+  } else {
+    document.title = String(to.name);
+  }
+  next();
+});
 export default router;

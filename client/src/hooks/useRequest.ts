@@ -12,12 +12,15 @@ export function useRequest<T, P = any>(
     defaultParams?: P;
   }
 ) {
-  const data = ref<T|null>(null);
+  const data = ref<T | null>(null);
   const loading = ref(false);
-  const error = ref<errorResponse |boolean>(false);
+  const error = ref<errorResponse | boolean>(false);
   const run = async (params?: P) => {
     if (loading.value) return;
-    loading.value = true;
+    // 设定300ms内完成加载不显示
+    const timer = setTimeout(() => {
+      loading.value = true;
+    }, 200);
     error.value = false;
     try {
       const res = await requestFn(params || options?.defaultParams);
@@ -39,6 +42,7 @@ export function useRequest<T, P = any>(
         };
       }
     } finally {
+      clearTimeout(timer);
       loading.value = false;
     }
   };
