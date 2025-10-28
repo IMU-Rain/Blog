@@ -58,6 +58,9 @@ const scrollStore = useScrollsStore();
       position: relative;
       .router-link {
         transition: all 0.3s ease;
+        -webkit-tap-highlight-color: transparent;
+        background-color: transparent;
+        outline: none;
         &::after {
           content: "";
           width: 100%;

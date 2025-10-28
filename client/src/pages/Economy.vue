@@ -23,7 +23,7 @@
 <script lang="ts" setup>
 import * as echarts from "echarts";
 import { onMounted, ref } from "vue";
-import Aside from "../components/Aside.vue";
+import Aside from "../components/PoemAside.vue";
 import { useRequest } from "../hooks/useRequest";
 import { getDuxiuIndex } from "../api/duxiuIndex";
 import type { duxiuIndexType } from "../types/duxiuIndex";

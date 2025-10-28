@@ -8,13 +8,13 @@ const routes: Array<RouteRecordRaw> = [
   },
   {
     path: "/article/:id",
-    name: "article",
+    name: "Article",
     component: () => import("../pages/ArticleDetial.vue"),
     props: true,
   },
   {
     path: "/economy",
-    name: "economy",
+    name: "Economy",
     component: () => import("../pages/Economy.vue"),
   },
   {
