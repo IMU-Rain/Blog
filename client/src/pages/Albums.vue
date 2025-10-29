@@ -95,7 +95,7 @@ const switchPhoto = (index: number) => {
 }
 
 .item {
-  width: calc(33.33% - 16px); // 三列布局，每列减去间距
+  width: calc(33.33% - 16px);   
   margin: 0 8px 16px;
 }
 

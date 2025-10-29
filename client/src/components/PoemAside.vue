@@ -16,7 +16,20 @@
 import axios from "axios";
 import { onMounted, ref } from "vue";
 const poem = ref();
+const isCacheValid = (timestamp: number) => {
+  const now = Date.now();
+  const CACHE_EXPIRE_HOURS = 1;
+  return now - timestamp < CACHE_EXPIRE_HOURS * 3600 * 1000;
+};
 const getPoem = () => {
+  const cacheData = localStorage.getItem("POEM_CACHE");
+  if (cacheData) {
+    const parsed = JSON.parse(cacheData);
+    if (isCacheValid(parsed.timestamp)) {
+      poem.value = parsed.data;
+      return;
+    }
+  }
   axios
     .get(
       "https://api.songzixian.com/api/daily-poem?dataSource=LOCAL_DAILY_POEM"
@@ -24,6 +37,10 @@ const getPoem = () => {
     .then((res) => {
       if (res.status === 200) {
         poem.value = res.data.data;
+        localStorage.setItem(
+          "POEM_CACHE",
+          JSON.stringify({ data: res.data.data, timestamp: Date.now() })
+        );
       }
     });
 };
