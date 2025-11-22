@@ -32,7 +32,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ref } from "vue";
+import { onMounted, ref } from "vue";
 import Photo from "../components/Photo.vue";
 import { getAllPhotos } from "../api/photo";
 import PhotoDetail from "../components/PhotoDetail.vue";
@@ -40,6 +40,7 @@ import { useRequest } from "../hooks/useRequest";
 import type { PhotoType } from "../types/photo";
 import LoadingSkeleton from "../components/LoadingSkeleton.vue";
 import ErrorSkeleton from "../components/ErrorSkeleton.vue";
+import axios from "../api/axios";
 
 const selectPhoto = ref();
 const index = ref();
@@ -47,7 +48,25 @@ const {
   data: photoList,
   loading,
   error,
-} = useRequest<[PhotoType]>(getAllPhotos, { immediate: true });
+  run,
+} = useRequest<[PhotoType]>(getAllPhotos);
+
+onMounted(() => {
+  const url = axios.defaults.baseURL?.slice(
+    0,
+    axios.defaults.baseURL.length - 3
+  );
+  run().then(() => {
+    // 拼接最小缩略图，中间缩略图，原图路径
+    photoList.value?.map((photo) => {
+      photo.smallThumbnailPath = `${url}${photo.smallThumbPath}`;
+      photo.bigThumbnailPath = `${url}${photo.bigThumbPath}`;
+      photo.url = `${url}${photo.path}`;
+      console.log(photo);
+      return;
+    });
+  });
+});
 
 const showphotoDetail = (selectIndex: number) => {
   selectPhoto.value = photoList.value![selectIndex];
@@ -95,7 +114,7 @@ const switchPhoto = (index: number) => {
 }
 
 .item {
-  width: calc(33.33% - 16px);   
+  width: calc(33.33% - 16px);
   margin: 0 8px 16px;
 }
 

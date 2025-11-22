@@ -1,6 +1,6 @@
 <template>
   <div class="photo-container" v-if="photo">
-    <img :src="photo.thumbnailUrl" loading="lazy" class="thumbnail" />
+    <img :src="photo.smallThumbnailPath" loading="lazy" class="thumbnail" />
   </div>
 </template>
 

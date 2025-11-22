@@ -36,24 +36,34 @@ const uploadSingle = async (req, res) => {
     const url = album
       ? `/${UPLOAD_DIR_NAME}/${album}/${file.filename}`
       : `/${UPLOAD_DIR_NAME}/${file.filename}`;
+    // 创建图片存储路径
+    const relDir = album
+      ? `/${UPLOAD_DIR_NAME}/${album}`
+      : `/${UPLOAD_DIR_NAME}`;
     // 创建缩略图路径
     const absInput = file.path;
     const absOutputDir = album
       ? path.join(UPLOAD_DIR_ABS, album)
       : UPLOAD_DIR_ABS;
-    const { thumbnailName } = await mkThumbnail(
+    // 创建较大缩略图
+    const { thumbnailName: bigThumbName } = await mkThumbnail(
       absInput,
       absOutputDir,
-      file.filename
+      file.filename,
+      1200
     );
+    const bigThumbRel = `${relDir}/${bigThumbName}`;
+    // 创建最小缩略图
+    const { thumbnailName: smallThumbName } = await mkThumbnail(
+      path.join(UPLOAD_DIR_ABS, album, bigThumbName),
+      absOutputDir,
+      bigThumbName
+    );
+    const smallThumbRel = `${relDir}/${smallThumbName}`;
     const shotTime = new Date(
       exif.DateTimeOriginal || exif.CreateDate || Date.now
     );
-    // 创建图片存储路径
-    const relDir = album
-      ? `/${UPLOAD_DIR_NAME}/${album}`
-      : `/${UPLOAD_DIR_NAME}`;
-    const thumbRel = `${relDir}/${thumbnailName}`;
+
     const photo = new photoSchema({
       filename: file.filename,
       size: file.size,
@@ -63,7 +73,8 @@ const uploadSingle = async (req, res) => {
       mimetype: file.mimetype,
       album: album,
       path: url,
-      thumbnailPath: thumbRel,
+      bigThumbPath: bigThumbRel,
+      smallThumbPath: smallThumbRel,
       camera: {
         make: exif.Make || "未知",
         model: exif.Model || "未知",
@@ -206,8 +217,6 @@ const getImages = async (req, res) => {
       photo.shotTime = photo.shotTime.toISOString();
       return {
         ...photo.toObject(),
-        thumbnailUrl: `${process.env.BASE_URL}${photo.thumbnailPath}`,
-        url: `${process.env.BASE_URL}${photo.path}`,
       };
     });
     successResponse(res, fullPhotos, "图片列表获取成功");

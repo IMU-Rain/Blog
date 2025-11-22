@@ -50,7 +50,8 @@ const photoSchema = new mongoose.Schema({
     default: true,
   },
   // models/photo.js
-  thumbnailPath: { type: String, default: "" },
+  smallThumbPath: { type: String, default: "" },
+  bigThumbPath: { type: String, default: "" },
   width: Number,
   height: Number,
   shotTime: {

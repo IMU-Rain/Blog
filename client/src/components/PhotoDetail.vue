@@ -8,7 +8,11 @@
         <
       </button>
       <div class="photo-detail" @click="emit('close')" v-show="isImageLoading">
-        <img :src="photoData.url" class="photo" @load="isImageLoading = true" />
+        <img
+          :src="photoData.bigThumbnailPath"
+          class="photo"
+          @load="isImageLoading = true"
+        />
         <ul class="photo-meta" v-if="photoData.camera.iso">
           <li>
             <span>{{
@@ -73,7 +77,9 @@ const getScaledSize = () => {
   scaledWidth.value = scaleRadio * originalWidth;
   scaledHeight.value = scaleRadio * originalHeight;
 };
-onMounted(getScaledSize);
+onMounted(() => {
+  getScaledSize();
+});
 watch(photoData, getScaledSize);
 const emit = defineEmits<{
   (e: "close"): void;

@@ -42,6 +42,23 @@ const getPoem = () => {
           JSON.stringify({ data: res.data.data, timestamp: Date.now() })
         );
       }
+    })
+    .catch(() => {
+      const defaultPoemData = {
+        requestId: "1722517456527953920",
+        code: 200,
+        message: "正常响应",
+        data: {
+          quotes: "长安白日照春空，绿杨结烟垂袅风。",
+          title: "阳春歌",
+          content: null,
+          dynasty: "唐",
+          author: "李白",
+          updateTime: null,
+          createTime: null,
+        },
+      };
+      poem.value = defaultPoemData;
     });
 };
 onMounted(() => {
