@@ -17,12 +17,24 @@ import { useRequest } from "../hooks/useRequest";
 import type { ArticleRaw } from "../types/article";
 import LoadingSkeleton from "../components/LoadingSkeleton.vue";
 import ErrorSkeleton from "../components/ErrorSkeleton.vue";
+import { onMounted } from "vue";
+import axios from "../api/axios";
 const {
   data: articles,
   error,
   loading,
-} = useRequest<[ArticleRaw]>(getArticles, {
-  immediate: true,
+  run,
+} = useRequest<[ArticleRaw]>(getArticles);
+onMounted(() => {
+  const baseURL = axios.defaults.baseURL?.slice(
+    0,
+    axios.defaults.baseURL.length - 4
+  );
+  run().then(() => {
+    articles.value?.map((article) => {
+      article.url = `${baseURL}${article.url}`;
+    });
+  });
 });
 </script>
 

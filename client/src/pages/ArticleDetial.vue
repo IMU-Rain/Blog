@@ -34,6 +34,8 @@ import hljs from "highlight.js";
 import "highlight.js/styles/monokai.css";
 import taskLists from "markdown-it-task-lists";
 import markdownItAttrs from "markdown-it-attrs";
+import axios from "../api/axios";
+import { onMounted } from "vue";
 const md = new MarkdownIt({
   html: true,
   linkify: true,
@@ -66,8 +68,17 @@ const {
   run,
   loading,
 } = useRequest<ArticleDetail>(getArticleDetail);
-run({ id: articleID }).then(() => {
-  document.title = String(articleData.value?.article.title);
+onMounted(() => {
+  run({ id: articleID }).then(() => {
+    document.title = String(articleData.value?.article.title);
+    const baseURL = axios.defaults.baseURL?.slice(
+      0,
+      axios.defaults.baseURL.length - 3
+    );
+    if (articleData.value) {
+      articleData.value.url = `${baseURL}/${articleData.value.url}`;
+    }
+  });
 });
 </script>
 

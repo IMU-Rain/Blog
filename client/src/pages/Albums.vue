@@ -62,7 +62,6 @@ onMounted(() => {
       photo.smallThumbnailPath = `${url}${photo.smallThumbPath}`;
       photo.bigThumbnailPath = `${url}${photo.bigThumbPath}`;
       photo.url = `${url}${photo.path}`;
-      console.log(photo);
       return;
     });
   });

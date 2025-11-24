@@ -2,7 +2,10 @@ const path = require("path");
 const fsPromise = require("fs/promises");
 const Article = require("../models/article");
 const ArticlePhoto = require("../models/articlePhoto");
-const { UPLOAD_DIR_NAME_COVER } = require("../middlewares/uploads");
+const {
+  UPLOAD_DIR_ABS_COVER,
+  UPLOAD_DIR_NAME_COVER,
+} = require("../middlewares/uploads");
 const {
   successResponse,
   errorResponse,
@@ -12,14 +15,24 @@ const {
   DB_ERROR,
   PARAM_ERROR,
   RESOURCE_DELETE_FAIL,
+  SERVER_ERROR,
 } = require("../utils/errorTypes");
+const { mkThumbnail } = require("../utils/image");
 // 创建文章
 const createArticle = async (req, res) => {
   let articleData;
   try {
     const cover = req.file;
+    const outputPath = UPLOAD_DIR_ABS_COVER;
+    const { thumbnailName } = await mkThumbnail(
+      cover.path,
+      outputPath,
+      cover.filename,
+      1200
+    );
     if (!cover) {
       errorResponse(res, PARAM_MISSING, "封面图片未上传", 400);
+      return;
     }
     try {
       articleData = JSON.parse(req.body.article);
@@ -31,7 +44,7 @@ const createArticle = async (req, res) => {
         400
       );
     }
-    articleData.cover = `/${UPLOAD_DIR_NAME_COVER}/${cover.filename}`;
+    articleData.cover = `${UPLOAD_DIR_NAME_COVER}/${thumbnailName}`;
     const article = new Article(articleData);
     const saved = await article.save();
     successResponse(res, saved, "文章创建成功");
@@ -58,7 +71,7 @@ const getArticleInfo = async (req, res) => {
         id: article._id,
         title: article.title,
         excerpt: article.excerpt,
-        url: `${req.protocol}://${req.get("host")}${article.cover}`,
+        url: article.cover,
         tags: article.tags,
         createAt: article.createAt,
       };
@@ -73,7 +86,7 @@ const getArticleById = async (req, res) => {
   const id = req.params.id;
   try {
     const article = await Article.findById(id);
-    const url = `${req.protocol}://${req.get("host")}${article.cover}`;
+    const url = article.cover
     if (!article) {
       return errorResponse(
         res,

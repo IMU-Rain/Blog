@@ -63,7 +63,6 @@ const uploadSingle = async (req, res) => {
     const shotTime = new Date(
       exif.DateTimeOriginal || exif.CreateDate || Date.now
     );
-
     const photo = new photoSchema({
       filename: file.filename,
       size: file.size,
@@ -99,7 +98,10 @@ const uploadMultiple = async (req, res) => {
     return errorResponse(res, PARAM_MISSING, "文件为空，请重新检查", 400);
   }
   try {
+    const album = req.query.album?.trim();
+    const savedList = [];
     req.files.map(async (file) => {
+      // 获取exif信息
       let exif = {};
       exif = await exifr.parse(file.path, {
         gps: true,
@@ -110,33 +112,48 @@ const uploadMultiple = async (req, res) => {
       if (!exif) {
         exif = await exifr.parse(file.path);
       }
-      const album = req.query.album?.trim();
-      const tags = req.body.tags;
+      // 图片浏览路径
+      const url = album
+        ? `/${UPLOAD_DIR_NAME}/${album}/${file.filename}`
+        : `/${UPLOAD_DIR_NAME}/${file.filename}`;
+      // 创建图片存储路径
+      const relDir = album
+        ? `/${UPLOAD_DIR_NAME}/${album}`
+        : `/${UPLOAD_DIR_NAME}`;
+      // 创建缩略图路径
       const absInput = file.path;
       const absOutputDir = album
         ? path.join(UPLOAD_DIR_ABS, album)
         : UPLOAD_DIR_ABS;
-      const { thumbnailName } = await mkThumbnail(
+      // 创建较大缩略图
+      const { thumbnailName: bigThumbName } = await mkThumbnail(
         absInput,
         absOutputDir,
-        file.filename
+        file.filename,
+        1200
       );
-      const relDir = album
-        ? `/${UPLOAD_DIR_NAME}/${album}`
-        : `/${UPLOAD_DIR_NAME}`;
-      const thumbRel = `${relDir}/${thumbnailName}`;
-      const url = album
-        ? `/${UPLOAD_DIR_NAME}/${album}/${file.filename}`
-        : `${UPLOAD_DIR_NAME}/${file.filename}`;
+      const bigThumbRel = `${relDir}/${bigThumbName}`;
+      // 创建最小缩略图
+      const { thumbnailName: smallThumbName } = await mkThumbnail(
+        path.join(UPLOAD_DIR_ABS, album, bigThumbName),
+        absOutputDir,
+        bigThumbName
+      );
+      const smallThumbRel = `${relDir}/${smallThumbName}`;
+      const shotTime = new Date(
+        exif.DateTimeOriginal || exif.CreateDate || Date.now
+      );
       const photo = new photoSchema({
         filename: file.filename,
         size: file.size,
+        album: file.album || "",
         originalName: file.originalname,
-        tags,
+        tags: file.tags || [],
         mimetype: file.mimetype,
-        thumbnailPath: thumbRel,
-        album: album || "",
+        album: album,
         path: url,
+        bigThumbPath: bigThumbRel,
+        smallThumbPath: smallThumbRel,
         camera: {
           make: exif.Make || "未知",
           model: exif.Model || "未知",
@@ -144,13 +161,16 @@ const uploadMultiple = async (req, res) => {
           focalLength: exif.FocalLength || null,
           shutterSpeed: exif?.ExposureTime || null,
         },
+        shotTime,
         width: exif.ExifImageWidth || exif.ImageWidth,
         height: exif.ExifImageHeight || exif.ImageHeight,
         updateAt: Date.now(),
       });
-      return await photo.save();
+      const saved = await photo.save();
+      savedList.push(saved);
+      return await saved;
     });
-    successResponse(res, null, "所有文件上传成功");
+    successResponse(res, savedList, "所有文件上传成功");
   } catch (err) {
     errorResponse(res, SERVER_ERROR, err.message, 500);
   }
@@ -167,10 +187,12 @@ const deleteSingle = async (req, res) => {
       return errorResponse(res, RESOURCE_NOT_FIND, "未从数据中获取到文件", 404);
     }
     const filepath = path.join(__dirname, "..", photo.path);
-    const thumbnailPath = path.join(__dirname, "..", photo.thumbnailPath);
+    const smallThumbPath = path.join(__dirname, "..", photo.smallThumbPath);
+    const bigThumbPath = path.join(__dirname, "..", photo.bigThumbPath);
     try {
       await fs.unlink(filepath);
-      await fs.unlink(thumbnailPath);
+      await fs.unlink(smallThumbPath);
+      await fs.unlink(bigThumbPath);
     } catch (err) {
       errorResponse(res, RESOURCE_DELETE_FAIL, err.message, 404);
     }
@@ -192,10 +214,12 @@ const deleteMultiple = async (req, res) => {
     photoId.map(async (id) => {
       const photo = await photoSchema.findById(id);
       const filepath = path.join(__dirname, "..", photo.path);
-      const thumbnailPath = path.join(__dirname, "..", photo.thumbnailPath);
+      const smallThumbPath = path.join(__dirname, "..", photo.smallThumbPath);
+      const bigThumbPath = path.join(__dirname, "..", photo.bigThumbPath);
       try {
         await fs.unlink(filepath);
-        await fs.unlink(thumbnailPath);
+        await fs.unlink(smallThumbPath)
+        await fs.unlink(bigThumbPath);
       } catch (err) {
         return failList.push({ id: id, error: err.message });
       }

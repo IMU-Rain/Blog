@@ -27,5 +27,5 @@ interface ArticleRawResponseType {
   message: string;
   data: [ArticleRaw];
 }
-type Articles = Readonly<ArticleRaw>;
+type Articles = ArticleRaw;
 export type { Articles, ArticleRaw, ArticleDetail, ArticleRawResponseType };
