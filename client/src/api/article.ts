@@ -10,3 +10,6 @@ interface param {
 export const getArticleDetail = (params: param = { id: "" }) => {
   return axios.get(`/articles/${params.id}`).then((res) => res.data.data);
 };
+export const delArticle = (params: param = { id: "" }) => {
+  return axios.delete(`/articles/${params.id}`).then((res) => res.status);
+};

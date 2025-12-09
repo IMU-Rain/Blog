@@ -84,7 +84,6 @@ onMounted(() => {
 .container {
   gap: 30px;
   display: grid;
-
   grid-template-columns: 11fr 4fr;
   text-align: center;
   .duxiuindex {

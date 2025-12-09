@@ -29,7 +29,6 @@ onUnmounted(() => {
 .router-view {
   width: 80%;
   margin: 0 auto;
-  overflow: visible;
 }
 
 @media (max-width: 768px) {

@@ -86,7 +86,7 @@ const getArticleById = async (req, res) => {
   const id = req.params.id;
   try {
     const article = await Article.findById(id);
-    const url = article.cover
+    const url = article.cover;
     if (!article) {
       return errorResponse(
         res,

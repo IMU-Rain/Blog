@@ -1,5 +1,9 @@
 <template>
-  <div class="container" :class="{ sticky: scrollStore.isScroll }">
+  <div
+    class="container"
+    :class="{ sticky: scrollStore.isScroll }"
+    v-if="!router.meta?.requireAdmin"
+  >
     <div class="title">
       <router-link to="/">Max Byte</router-link>
     </div>
@@ -26,7 +30,9 @@
 </template>
 
 <script lang="ts" setup>
+import { useRoute } from "vue-router";
 import { useScrollsStore } from "../store/pinia";
+const router = useRoute();
 const scrollStore = useScrollsStore();
 </script>
 

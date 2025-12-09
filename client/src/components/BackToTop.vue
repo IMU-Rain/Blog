@@ -9,17 +9,20 @@
 </template>
 
 <script lang="ts" setup>
+
 import { useScrollsStore } from "../store/pinia";
 
 const scrollStore = useScrollsStore();
 const scrollToTop = () => {
   window.scrollTo({ top: 0, behavior: "smooth" });
 };
+
 </script>
 
 <style scoped lang="less">
 @import "../style/theme.less";
 .back-to-top-btn {
+  z-index: 999;
   width: 50px;
   height: 50px;
   padding: 5px;

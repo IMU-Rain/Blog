@@ -28,7 +28,7 @@ const {
 onMounted(() => {
   const baseURL = axios.defaults.baseURL?.slice(
     0,
-    axios.defaults.baseURL.length - 4
+    axios.defaults.baseURL.length - 3
   );
   run().then(() => {
     articles.value?.map((article) => {
@@ -45,7 +45,6 @@ onMounted(() => {
   grid-template-columns: 11fr 4fr;
   gap: 30px;
   overflow: visible;
-
   .article-titles {
     display: flex;
     gap: 30px;
