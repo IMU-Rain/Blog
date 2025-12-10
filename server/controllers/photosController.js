@@ -218,7 +218,7 @@ const deleteMultiple = async (req, res) => {
       const bigThumbPath = path.join(__dirname, "..", photo.bigThumbPath);
       try {
         await fs.unlink(filepath);
-        await fs.unlink(smallThumbPath)
+        await fs.unlink(smallThumbPath);
         await fs.unlink(bigThumbPath);
       } catch (err) {
         return failList.push({ id: id, error: err.message });

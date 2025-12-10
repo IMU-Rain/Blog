@@ -12,7 +12,7 @@
               class="el-menu-vertical-demo"
               :router="true"
               :collapse="collapseStore.isCollapse"
-              default-active="/admin/dashboard"
+              :default-active="getRoute()"
             >
               <el-menu-item index="/admin/dashboard">
                 <el-icon><DataBoard /></el-icon>
@@ -49,7 +49,11 @@
 <script lang="ts" setup>
 import { useNavCollapse } from "../../store/navCollapse";
 import Header from "./Header.vue";
+import router from "../../router";
 const collapseStore = useNavCollapse();
+const getRoute = () => {
+  return router.currentRoute.value.path
+};
 </script>
 
 <style scoped lang="less">

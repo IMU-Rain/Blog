@@ -27,6 +27,7 @@ import { useRequest } from "../../hooks/useRequest";
 import axios from "../../api/axios";
 import type { ArticleRaw } from "../../types/article";
 import { Message } from "../../components/Messge";
+import router from "../../router";
 
 const { data: tableDatas, run } = useRequest<[ArticleRaw]>(getArticles);
 const handleDelete = (id: string, title: string) => {
@@ -35,9 +36,17 @@ const handleDelete = (id: string, title: string) => {
       .then((code) => {
         if (code === 200) {
           Message.success("删除成功");
+        } else if (code === 401) {
+          return router.push("/login");
         }
       })
-      .finally(() => run());
+      .finally(() => run())
+      .catch(({ status }) => {
+        if (status === 401) {
+          Message.error("登陆状态失效, 返回登陆页面重新登陆");
+          router.push("/login");
+        }
+      });
 };
 onMounted(() => {
   const baseURL = axios.defaults.baseURL?.slice(
