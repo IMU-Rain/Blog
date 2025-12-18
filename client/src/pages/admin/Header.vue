@@ -12,7 +12,6 @@ import { useNavCollapse } from "../../store/navCollapse";
 const navCollapse = useNavCollapse();
 const collapse = () => {
   navCollapse.setCollapse();
-  console.log(navCollapse.isCollapse);
 };
 </script>
 

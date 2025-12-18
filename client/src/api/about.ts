@@ -1,5 +1,7 @@
 import axios from "./axios";
-const getAbout = () => {
+export const getAbout = () => {
   return axios.get("/about").then((res) => res.data.data);
 };
-export default getAbout;
+export const updateAbout = (content?: string) => {
+  return axios.put("/about", { content }).then((res) => res.data.data);
+};

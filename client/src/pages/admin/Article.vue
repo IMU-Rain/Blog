@@ -51,7 +51,7 @@ const handleDelete = (id: string, title: string) => {
 onMounted(() => {
   const baseURL = axios.defaults.baseURL?.slice(
     0,
-    axios.defaults.baseURL.length - 4
+    axios.defaults.baseURL.length - 3
   );
   run().then(() => {
     tableDatas.value?.map((tableData) => {

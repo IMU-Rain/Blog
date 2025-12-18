@@ -27,7 +27,7 @@ const uploadArticleImage = async (req, res) => {
         );
         await fsPromise.unlink(file.path);
         const path = `${absOutputDir}/${thumbnailName}`;
-        const url = `${process.env.BASE_URL}/${UPLOAD_DIR_NAME_ARTICLE}/${thumbnailName}`;
+        const url = `${UPLOAD_DIR_NAME_ARTICLE}/${thumbnailName}`;
         const saved = await new ArticleImage({
           url,
           originalName: file.originalname,

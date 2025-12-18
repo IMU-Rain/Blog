@@ -38,7 +38,7 @@ const updateAbout = async (req, res) => {
     if (!updated) {
       errorResponse(res, DB_ERROR, null, "未从数据库中找到关于页文章");
     }
-    successResponse(res, null, "关于页文章更新成功");
+    successResponse(res, updated, "关于页文章更新成功");
   } catch (err) {
     errorResponse(res, DB_ERROR, err.message, 500);
   }

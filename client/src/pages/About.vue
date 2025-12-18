@@ -16,12 +16,13 @@
 <script lang="ts" setup>
 import Aside from "../components/Aside.vue";
 
-import getAbout from "../api/about";
+
 import MarkdownIt from "markdown-it";
 import { useRequest } from "../hooks/useRequest";
 import LoadingSkeleton from "../components/LoadingSkeleton.vue";
 import ErrorSkeleton from "../components/ErrorSkeleton.vue";
 import { onMounted } from "vue";
+import { getAbout } from "../api/about";
 const md = new MarkdownIt();
 
 const { loading, error, data: aboutData, run } = useRequest(getAbout);
