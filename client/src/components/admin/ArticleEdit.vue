@@ -23,3 +23,9 @@ const onUploadImg = async (files, callback) => {
   });
 };
 </script>
+<style lang="less">
+.md-editor {
+  height: 100%;
+  width: 50%;
+}
+</style>
