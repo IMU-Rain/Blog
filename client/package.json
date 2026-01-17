@@ -9,12 +9,10 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@element-plus/icons-vue": "^2.3.2",
     "@tinymce/tinymce-vue": "^6.3.0",
     "axios": "^1.12.2",
     "dayjs": "^1.11.18",
     "echarts": "^6.0.0",
-    "element-plus": "^2.12.0",
     "highlight.js": "^11.11.1",
     "less": "^4.4.1",
     "markdown-it": "^14.1.0",

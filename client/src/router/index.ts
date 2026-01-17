@@ -28,44 +28,6 @@ const routes: Array<RouteRecordRaw> = [
     name: "About",
     component: () => import("../pages/About.vue"),
   },
-  {
-    path: "/login",
-    name: "Login",
-    component: () => import("../pages/Login.vue"),
-  },
-  {
-    path: "/admin",
-    name: "admin",
-    component: () => import("../pages/admin/Admin.vue"),
-    meta: { requireAdmin: true },
-    children: [
-      {
-        path: "articles",
-        name: "AdminArticles",
-        component: () => import("../pages/admin/Article.vue"),
-      },
-      {
-        path: "albums",
-        name: "AdminAlbums",
-        component: () => import("../pages/admin/Albums.vue"),
-      },
-      {
-        path: "about",
-        name: "AdminAbout",
-        component: () => import("../pages/admin/About.vue"),
-      },
-      {
-        path: "dashboard",
-        name: "AdminDashboard",
-        component: () => import("../pages/admin/Dashboard.vue"),
-      },
-      {
-        path: "duxiuindex",
-        name: "AdminDuxiuindex",
-        component: () => import("../pages/admin/DuxiuIndex.vue"),
-      },
-    ],
-  },
 ];
 const router = createRouter({
   history: createWebHistory(),
