@@ -11,7 +11,7 @@ const {
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const SECRET_KEY = process.env.SECRET_KEY || "dev-secret-key";
-
+/**处理登陆函数 */
 const loginController = async (req, res) => {
   const { username, password } = req.body;
   if (!username || !password) {

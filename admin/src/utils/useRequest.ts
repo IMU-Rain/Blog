@@ -26,8 +26,12 @@ export default function useReuest(
       case "post":
         http
           .post(path, data)
-          .then((res) => handleResponse(res))
-          .catch((err) => reject(err));
+          .then((res) => {
+            handleResponse(res);
+          })
+          .catch((err) => {
+            reject(err);
+          });
         break;
       case "delete":
         http
