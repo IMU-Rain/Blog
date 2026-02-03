@@ -3,9 +3,15 @@ import MaxInput from "@/components/MaxInput.vue";
 import MaxButton from "@/components/MaxButton.vue";
 import { ref } from "vue";
 import { login } from "@/api/account";
+import { useRouter } from "vue-router";
+const router=useRouter()
 const loginData = ref({ username: "", password: "" });
 const handleLogin = () => {
-  login(loginData.value);
+  login(loginData.value).then((res) => {
+    if(res.code===200){
+      router.push("/dashboard")
+    }
+  });
 };
 </script>
 

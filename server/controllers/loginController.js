@@ -39,7 +39,6 @@ const loginController = async (req, res) => {
       { expiresIn: "30m" }
     );
     res.cookie("token", token, {
-      httpOnly: true,
       maxAge: 30 * 60 * 1000,
     });
     successResponse(res, { username }, "登陆成功");
