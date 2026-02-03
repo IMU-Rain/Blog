@@ -37,35 +37,30 @@ onBeforeRouteUpdate((to) => {
   const index = routeToIndex.get(to.path);
   if (index) calcIndicatorLeft(index);
 });
-
-// 保留你原有的点击方法（模板调用）
-const setLeft = (index: number) => {
-  calcIndicatorLeft(index);
-};
 </script>
 
 <template>
   <div class="container">
     <ul>
       <li>
-        <RouterLink to="/Dashboard" @click="setLeft(1)"
+        <RouterLink to="/Dashboard"
           ><icon-ic:outline-home /><span>Dashboard</span></RouterLink
         >
       </li>
       <li>
-        <RouterLink to="/Articles" @click="setLeft(2)"
+        <RouterLink to="/Articles"
           ><icon-fluent:content-view-24-regular /><span
             >Articles</span
           ></RouterLink
         >
       </li>
       <li>
-        <RouterLink to="/Albums" @click="setLeft(3)"
+        <RouterLink to="/Albums"
           ><icon-tabler:photo /><span>Albums</span></RouterLink
         >
       </li>
       <li>
-        <RouterLink to="/About" @click="setLeft(4)"
+        <RouterLink to="/About"
           ><icon-tabler-user-circle /><span>About</span></RouterLink
         >
       </li>
