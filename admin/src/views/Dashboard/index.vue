@@ -1,8 +1,16 @@
 <script lang="ts" setup>
+import { onMounted, ref } from "vue";
 import DataCard from "./components/DataCard.vue";
-const data = [
-  { number: 100, icon: "fluent-color:people-interwoven-48", title: "visitors" },
-];
+import { getArticleNumber } from "@/api/DataCard";
+const cardData = ref();
+const setTableCard = async () => {
+  getArticleNumber().then((res) => {
+    cardData.value.push({ total: res.total });
+  });
+};
+onMounted(() => {
+  setTableCard();
+});
 </script>
 
 <template>
@@ -13,10 +21,7 @@ const data = [
     </div>
     <div class="content">
       <ul class="cards">
-        <li class="card"><DataCard :meta="data[0]" /></li>
-        <li class="card"></li>
-        <li class="card"></li>
-        <li class="card"></li>
+        <li class="card" v-for="item in cardData"><DataCard :meta="item" /></li>
       </ul>
     </div>
   </div>
@@ -27,9 +32,18 @@ const data = [
   width: 70%;
   margin: 0 auto;
   .content {
-    display: grid;
-    grid-template-columns: repeat(1fr, 4);
+    margin-top: 2rem;
     .cards {
+      display: grid;
+      height: 120px;
+      gap: 5%;
+      grid-template-columns: repeat(4, 1fr);
+      .card {
+        transition: 0.2s;
+        &:hover {
+          transform: scale(1.05);
+        }
+      }
     }
   }
 }

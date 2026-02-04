@@ -28,7 +28,7 @@ const createArticle = async (req, res) => {
       cover.path,
       outputPath,
       cover.filename,
-      1200
+      1200,
     );
     if (!cover) {
       errorResponse(res, PARAM_MISSING, "封面图片未上传", 400);
@@ -41,7 +41,7 @@ const createArticle = async (req, res) => {
         res,
         PARAM_ERROR,
         `JSON格式错误:${parseErr.message},位置:${parseErr.position}`,
-        400
+        400,
       );
     }
     articleData.cover = `${UPLOAD_DIR_NAME_COVER}/${thumbnailName}`;
@@ -76,7 +76,7 @@ const getArticleInfo = async (req, res) => {
         createAt: article.createAt,
       };
     });
-    successResponse(res, datas);
+    successResponse(res, datas, articles.length);
   } catch (err) {
     errorResponse(res, DB_ERROR, err.message, 500);
   }
@@ -92,7 +92,7 @@ const getArticleById = async (req, res) => {
         res,
         PARAM_ERROR,
         `未从数据库中找到id:${id}的文章`,
-        404
+        404,
       );
     }
     successResponse(res, { article, url });
@@ -107,14 +107,14 @@ const updateArticle = async (req, res) => {
     const update = await Article.findByIdAndUpdate(
       id,
       { ...req.body, updateAt: new Date() }, // 保证更新时间更新
-      { new: true } // 返回更新后的对象
+      { new: true }, // 返回更新后的对象
     );
     if (!update) {
       return errorResponse(
         res,
         RESOURCE_NOT_FIND,
         `未从数据库中找到文章id:${id}`,
-        404
+        404,
       );
     }
     successResponse(res, update, "文章更新成功");
@@ -132,7 +132,7 @@ const deleteArticle = async (req, res) => {
         res,
         RESOURCE_DELETE_FAIL,
         `数据库中未找到id:${id}的文章`,
-        404
+        404,
       );
     }
     try {

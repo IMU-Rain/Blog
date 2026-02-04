@@ -24,6 +24,7 @@
     "@iconify-json/ri": "^1.2.9",
     "@iconify-json/stash": "^1.2.4",
     "@iconify-json/tabler": "^1.2.26",
+    "@iconify/vue": "^5.0.0",
     "@types/node": "^24.10.1",
     "@vitejs/plugin-vue": "^6.0.1",
     "@vue/tsconfig": "^0.8.1",

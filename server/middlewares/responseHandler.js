@@ -6,8 +6,8 @@ const errorResponse = (res, errorType, detail = "", statusCode = 400) => {
   };
   res.status(statusCode).json(response);
 };
-const successResponse = (res, data = null, message = "操作成功") => {
-  res.status(200).json({ message, data });
+const successResponse = (res, data = null, total, message = "操作成功") => {
+  res.status(200).json({ message, data, total });
 };
 module.exports = {
   successResponse,
