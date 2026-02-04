@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, nextTick } from "vue";
 import { useRoute, onBeforeRouteUpdate } from "vue-router";
 
 // 1. 显式定义TS类型，初始化值可设为空（后续会覆盖）
@@ -28,7 +28,9 @@ const setLeftByRoute = () => {
 
 // 2. 页面初始化：根据当前路由设置初始位置（解决刷新/直接访问无位置问题）
 onMounted(() => {
-  setLeftByRoute();
+  nextTick(() => {
+    setLeftByRoute();
+  });
 });
 
 // 3. 监听路由切换（包括浏览器回退/前进）：同步更新位置
@@ -75,7 +77,7 @@ onBeforeRouteUpdate((to) => {
   width: 70%;
   height: 80px;
   background-color: @card-background-color;
-  border-radius: 10px;
+  border-radius: 9999px;
   padding: 0 20px;
   & > ul {
     display: grid;
