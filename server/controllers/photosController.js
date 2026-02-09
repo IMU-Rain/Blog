@@ -50,18 +50,18 @@ const uploadSingle = async (req, res) => {
       absInput,
       absOutputDir,
       file.filename,
-      1200
+      1200,
     );
     const bigThumbRel = `${relDir}/${bigThumbName}`;
     // 创建最小缩略图
     const { thumbnailName: smallThumbName } = await mkThumbnail(
       path.join(UPLOAD_DIR_ABS, album, bigThumbName),
       absOutputDir,
-      bigThumbName
+      bigThumbName,
     );
     const smallThumbRel = `${relDir}/${smallThumbName}`;
     const shotTime = new Date(
-      exif.DateTimeOriginal || exif.CreateDate || Date.now
+      exif.DateTimeOriginal || exif.CreateDate || Date.now,
     );
     const photo = new photoSchema({
       filename: file.filename,
@@ -130,18 +130,18 @@ const uploadMultiple = async (req, res) => {
         absInput,
         absOutputDir,
         file.filename,
-        1200
+        1200,
       );
       const bigThumbRel = `${relDir}/${bigThumbName}`;
       // 创建最小缩略图
       const { thumbnailName: smallThumbName } = await mkThumbnail(
         path.join(UPLOAD_DIR_ABS, album, bigThumbName),
         absOutputDir,
-        bigThumbName
+        bigThumbName,
       );
       const smallThumbRel = `${relDir}/${smallThumbName}`;
       const shotTime = new Date(
-        exif.DateTimeOriginal || exif.CreateDate || Date.now
+        exif.DateTimeOriginal || exif.CreateDate || Date.now,
       );
       const photo = new photoSchema({
         filename: file.filename,
@@ -243,7 +243,7 @@ const getImages = async (req, res) => {
         ...photo.toObject(),
       };
     });
-    successResponse(res, fullPhotos, "图片列表获取成功");
+    successResponse(res, fullPhotos, fullPhotos.length, "图片列表获取成功");
   } catch (err) {
     errorResponse(res, SERVER_ERROR, err.message, 500);
   }
@@ -273,7 +273,7 @@ const getImagesByAlbum = async (req, res) => {
         res,
         DB_ERROR,
         `数据库中未查询到${album}的文件`,
-        404
+        404,
       );
     }
     return successResponse(res, { photos, album: album });

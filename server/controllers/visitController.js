@@ -11,7 +11,7 @@ const {
 const getVisit = async (req, res) => {
   try {
     const visitData = await visitSchema.find({});
-    successResponse(res, visitData, "访问数据获取成功");
+    successResponse(res, null, visitData.length, "访问数据获取成功");
   } catch (err) {
     errorResponse(res, DB_ERROR, null, err.message, 500);
   }

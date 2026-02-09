@@ -1,10 +1,6 @@
 import http from "@/api/http";
+import type { ResponseType } from "@/types/ResponseTypes";
 import type { AxiosResponse } from "axios";
-interface ResponseType {
-  message: string;
-  code: number;
-  data?: any;
-}
 
 /**标准化请求函数 */
 export default function useReuest(
@@ -14,7 +10,12 @@ export default function useReuest(
 ): Promise<ResponseType> {
   return new Promise((resolve, reject) => {
     const handleResponse = (res: AxiosResponse) => {
-      resolve({ data: res.data, message: res.statusText, code: res.status });
+      resolve({
+        message: res.data.message,
+        data: res.data.data,
+        code: res.status,
+        total: res.data.total,
+      });
     };
     switch (methods.toLowerCase()) {
       case "get":

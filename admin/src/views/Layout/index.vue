@@ -11,7 +11,7 @@ import MaxBar from "@/components/MaxBar.vue";
 .maxbar {
   position: fixed;
   right: 50%;
-  bottom: 20%;
+  bottom: 10%;
   transform: translate(50%);
 }
 </style>

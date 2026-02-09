@@ -1,5 +1,6 @@
 import axios, { AxiosError, type AxiosResponse } from "axios";
 import router from "../router";
+import type { ResponseType } from "@/types/ResponseTypes";
 const http = axios.create({
   // baseURL: "https://www.maxbyte.fun/api/",
   baseURL: "http://localhost:3000/api",
@@ -9,8 +10,9 @@ const http = axios.create({
     "Content-Type": "application/json",
   },
 });
+// 响应拦截器，提前预处理后端响应
 http.interceptors.response.use(
-  (response: AxiosResponse) => {
+  (response: AxiosResponse<ResponseType<any>>) => {
     const { status, statusText } = response;
 
     switch (status) {
