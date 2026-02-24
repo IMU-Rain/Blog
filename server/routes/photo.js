@@ -1,11 +1,7 @@
 const router = require("express").Router();
-const { singleImage, multipleImages } = require("../middlewares/uploads");
-const uploader = require("../middlewares/uploads");
 const photosController = require("../controllers/photosController");
-router.post("/", singleImage, photosController.uploadSingle);
-router.post("/bulk", multipleImages, photosController.uploadMultiple);
-router.delete("/:id", photosController.deleteSingle);
-router.post("/bulk-delete", photosController.deleteMultiple);
+router.post("/", photosController.photoUpload);
+router.delete("/", photosController.photoDelete);
 router.get("/", photosController.getImages);
 router.get("/album", photosController.getImagesByAlbum);
 module.exports = router;

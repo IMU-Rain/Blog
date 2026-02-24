@@ -72,7 +72,7 @@ onMounted(() => {
       {
         name: "Population",
         type: "map",
-        map: "china", // 这里用 USA 作为示例
+        map: "USA", // 这里用 USA 作为示例
         roam: true, // 可缩放和平移
         emphasis: {
           label: { show: true },

@@ -1,7 +1,12 @@
 const path = require("path");
 const fs = require("fs/promises");
-const { UPLOAD_DIR_NAME, UPLOAD_DIR_ABS } = require("../middlewares/uploads");
+const {
+  UPLOAD_DIR_NAME,
+  UPLOAD_DIR_ABS_THUMBNAIL,
+  UPLOAD_DIR_ABS_THUMBNAIL_DOUBLE,
+} = require("../middlewares/uploads");
 const photoSchema = require("../models/photo");
+const fileSchema = require("../models/File");
 const exifr = require("exifr");
 const { mkThumbnail } = require("../utils/image");
 const {
@@ -12,98 +17,27 @@ const {
   PARAM_MISSING,
   SERVER_ERROR,
   DB_ERROR,
+  RESOURCE_NOT_FIND,
 } = require("../utils/errorTypes");
-// 单张图片上传
-const uploadSingle = async (req, res) => {
-  if (!req.file) {
-    return errorResponse(res, PARAM_MISSING, "未接收到文件", 400);
-  }
+// 图片上传
+const photoUpload = async (req, res) => {
   try {
-    const { file } = req;
-    const album = req.query.album?.trim();
-    // 获取exif信息
-    let exif = {};
-    exif = await exifr.parse(file.path, {
-      gps: true,
-      tiff: true,
-      ifd0: true,
-      exif: true,
-    });
-    if (!exif) {
-      exif = await exifr.parse(file.path);
-    }
-    // 图片浏览路径
-    const url = album
-      ? `/${UPLOAD_DIR_NAME}/${album}/${file.filename}`
-      : `/${UPLOAD_DIR_NAME}/${file.filename}`;
-    // 创建图片存储路径
-    const relDir = album
-      ? `/${UPLOAD_DIR_NAME}/${album}`
-      : `/${UPLOAD_DIR_NAME}`;
-    // 创建缩略图路径
-    const absInput = file.path;
-    const absOutputDir = album
-      ? path.join(UPLOAD_DIR_ABS, album)
-      : UPLOAD_DIR_ABS;
-    // 创建较大缩略图
-    const { thumbnailName: bigThumbName } = await mkThumbnail(
-      absInput,
-      absOutputDir,
-      file.filename,
-      1200,
-    );
-    const bigThumbRel = `${relDir}/${bigThumbName}`;
-    // 创建最小缩略图
-    const { thumbnailName: smallThumbName } = await mkThumbnail(
-      path.join(UPLOAD_DIR_ABS, album, bigThumbName),
-      absOutputDir,
-      bigThumbName,
-    );
-    const smallThumbRel = `${relDir}/${smallThumbName}`;
-    const shotTime = new Date(
-      exif.DateTimeOriginal || exif.CreateDate || Date.now,
-    );
-    const photo = new photoSchema({
-      filename: file.filename,
-      size: file.size,
-      album: file.album || "",
-      originalName: file.originalname,
-      tags: file.tags || [],
-      mimetype: file.mimetype,
-      album: album,
-      path: url,
-      bigThumbPath: bigThumbRel,
-      smallThumbPath: smallThumbRel,
-      camera: {
-        make: exif.Make || "未知",
-        model: exif.Model || "未知",
-        iso: exif.ISO || null,
-        focalLength: exif.FocalLength || null,
-        shutterSpeed: exif?.ExposureTime || null,
-      },
-      shotTime,
-      width: exif.ExifImageWidth || exif.ImageWidth,
-      height: exif.ExifImageHeight || exif.ImageHeight,
-      updateAt: Date.now(),
-    });
-    const saved = await photo.save();
-    successResponse(res, saved, "图片上传成功");
-  } catch (err) {
-    errorResponse(res, SERVER_ERROR, err.message, 500);
-  }
-};
-// 多张图片上传
-const uploadMultiple = async (req, res) => {
-  if (!req.files) {
-    return errorResponse(res, PARAM_MISSING, "文件为空，请重新检查", 400);
-  }
-  try {
-    const album = req.query.album?.trim();
-    const savedList = [];
-    req.files.map(async (file) => {
+    let { albums } = req.body;
+    if (!albums) albums = "default";
+    for (const id of req.body.id) {
+      const fileDoc = await fileSchema.findById(id);
+      const relativePath = fileDoc.url.replace(/^\/+/, "/");
+      // 2️⃣ 拼接成绝对路径
+      const absolutePath = path.join(
+        __dirname,
+        "..",
+        relativePath, // uploads/xxx.jpg
+      );
+      // 3️⃣ 现在可以安全读文件
+      const file = await fs.readFile(absolutePath);
       // 获取exif信息
       let exif = {};
-      exif = await exifr.parse(file.path, {
+      exif = await exifr.parse(absolutePath, {
         gps: true,
         tiff: true,
         ifd0: true,
@@ -113,47 +47,42 @@ const uploadMultiple = async (req, res) => {
         exif = await exifr.parse(file.path);
       }
       // 图片浏览路径
-      const url = album
-        ? `/${UPLOAD_DIR_NAME}/${album}/${file.filename}`
-        : `/${UPLOAD_DIR_NAME}/${file.filename}`;
-      // 创建图片存储路径
-      const relDir = album
-        ? `/${UPLOAD_DIR_NAME}/${album}`
-        : `/${UPLOAD_DIR_NAME}`;
-      // 创建缩略图路径
-      const absInput = file.path;
-      const absOutputDir = album
-        ? path.join(UPLOAD_DIR_ABS, album)
-        : UPLOAD_DIR_ABS;
+      const url = fileDoc.url;
       // 创建较大缩略图
       const { thumbnailName: bigThumbName } = await mkThumbnail(
-        absInput,
-        absOutputDir,
-        file.filename,
+        absolutePath,
+        UPLOAD_DIR_ABS_THUMBNAIL,
+        fileDoc.fileName,
         1200,
       );
-      const bigThumbRel = `${relDir}/${bigThumbName}`;
-      // 创建最小缩略图
-      const { thumbnailName: smallThumbName } = await mkThumbnail(
-        path.join(UPLOAD_DIR_ABS, album, bigThumbName),
-        absOutputDir,
+      const bigThumbUrl = path.join(
+        UPLOAD_DIR_NAME,
+        "/thumbnail",
         bigThumbName,
       );
-      const smallThumbRel = `${relDir}/${smallThumbName}`;
+      // // 创建最小缩略图
+      const { thumbnailName: smallThumbName } = await mkThumbnail(
+        path.join(UPLOAD_DIR_ABS_THUMBNAIL, bigThumbName),
+        UPLOAD_DIR_ABS_THUMBNAIL_DOUBLE,
+        bigThumbName,
+      );
+      const smallThumbUrl = path.join(
+        UPLOAD_DIR_NAME,
+        "/thumbnailDouble",
+        smallThumbName,
+      );
       const shotTime = new Date(
         exif.DateTimeOriginal || exif.CreateDate || Date.now,
       );
-      const photo = new photoSchema({
-        filename: file.filename,
-        size: file.size,
-        album: file.album || "",
-        originalName: file.originalname,
-        tags: file.tags || [],
-        mimetype: file.mimetype,
-        album: album,
-        path: url,
-        bigThumbPath: bigThumbRel,
-        smallThumbPath: smallThumbRel,
+      await new photoSchema({
+        fileName: fileDoc.fileName,
+        fileId: id,
+        size: fileDoc.size,
+        album: file.album || "default",
+        originalName: fileDoc.originalName,
+        url,
+        bigThumbUrl: bigThumbUrl,
+        smallThumbUrl: smallThumbUrl,
         camera: {
           make: exif.Make || "未知",
           model: exif.Model || "未知",
@@ -165,69 +94,42 @@ const uploadMultiple = async (req, res) => {
         width: exif.ExifImageWidth || exif.ImageWidth,
         height: exif.ExifImageHeight || exif.ImageHeight,
         updateAt: Date.now(),
-      });
-      const saved = await photo.save();
-      savedList.push(saved);
-      return await saved;
-    });
-    successResponse(res, savedList, "所有文件上传成功");
+      }).save();
+    }
+    successResponse(res, "", "图片上传成功");
   } catch (err) {
     errorResponse(res, SERVER_ERROR, err.message, 500);
   }
 };
-// 单张图片删除
-const deleteSingle = async (req, res) => {
-  const photoId = await req.params.id;
+
+// 图片删除
+const photoDelete = async (req, res) => {
+  const photoId = req.body.id;
   if (!photoId) {
-    errorResponse(res, PARAM_MISSING, "id参数缺失", 400);
+    return errorResponse(res, PARAM_MISSING, "id参数缺失", 400);
   }
   try {
-    const photo = await photoSchema.findById(photoId);
-    if (!photo) {
-      return errorResponse(res, RESOURCE_NOT_FIND, "未从数据中获取到文件", 404);
-    }
-    const filepath = path.join(__dirname, "..", photo.path);
-    const smallThumbPath = path.join(__dirname, "..", photo.smallThumbPath);
-    const bigThumbPath = path.join(__dirname, "..", photo.bigThumbPath);
-    try {
-      await fs.unlink(filepath);
-      await fs.unlink(smallThumbPath);
-      await fs.unlink(bigThumbPath);
-    } catch (err) {
-      errorResponse(res, RESOURCE_DELETE_FAIL, err.message, 404);
-    }
-    const deleted = await photoSchema.findByIdAndDelete(photoId);
-    successResponse(res, deleted, "文件删除成功");
-  } catch (err) {
-    errorResponse(res, SERVER_ERROR, err.message, 500);
-  }
-};
-// 多张图片删除
-const deleteMultiple = async (req, res) => {
-  const { photoId } = req.body;
-  if (!photoId) {
-    errorResponse(res, PARAM_MISSING, photoId, 400);
-  }
-  const successList = [];
-  const failList = [];
-  try {
-    photoId.map(async (id) => {
+    for (const id of photoId) {
       const photo = await photoSchema.findById(id);
-      const filepath = path.join(__dirname, "..", photo.path);
-      const smallThumbPath = path.join(__dirname, "..", photo.smallThumbPath);
-      const bigThumbPath = path.join(__dirname, "..", photo.bigThumbPath);
+      if (!photo) {
+        return errorResponse(res, RESOURCE_NOT_FIND, "id不存在,请检查", 404);
+      }
+      const filepath = path.join(__dirname, "..", photo.url);
+      const smallThumbPath = path.join(__dirname, "..", photo.smallThumbUrl);
+      const bigThumbPath = path.join(__dirname, "..", photo.bigThumbUrl);
       try {
         await fs.unlink(filepath);
         await fs.unlink(smallThumbPath);
         await fs.unlink(bigThumbPath);
       } catch (err) {
-        return failList.push({ id: id, error: err.message });
+        return errorResponse(res, RESOURCE_DELETE_FAIL, err.message, 404);
       }
-      await photoSchema.findOneAndDelete(id);
-      successList.push({ id: id });
-    });
-    successResponse(res, { successList, failList }, "删除操作完成");
+      await photoSchema.findByIdAndDelete(photoId);
+      await fileSchema.findByIdAndDelete(photo.fileId);
+    }
+    successResponse(res, "文件删除成功");
   } catch (err) {
+    console.log(err);
     errorResponse(res, SERVER_ERROR, err.message, 500);
   }
 };
@@ -283,9 +185,7 @@ const getImagesByAlbum = async (req, res) => {
 };
 module.exports = {
   getImagesByAlbum,
-  uploadMultiple,
-  uploadSingle,
-  deleteSingle,
-  deleteMultiple,
+  photoUpload,
+  photoDelete,
   getImages,
 };

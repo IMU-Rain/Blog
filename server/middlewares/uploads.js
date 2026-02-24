@@ -8,20 +8,40 @@ const UPLOAD_DIR_NAME_COVER = process.env.UPLOAD_DIR || "../uploads/covers";
 const UPLOAD_DIR_NAME_ARTICLE =
   process.env.UPLOAD_DIR || "../uploads/articleimage";
 // 上传的绝对路径
-const UPLOAD_DIR_ABS = path.join(__dirname, "..", UPLOAD_DIR_NAME);
+// 原图
+const UPLOAD_DIR_ABS = path.join(__dirname, "..", UPLOAD_DIR_NAME, "/origin");
+// 封面
 const UPLOAD_DIR_ABS_COVER = path.join(__dirname, "..", UPLOAD_DIR_NAME_COVER);
+// 文章内部图片
 const UPLOAD_DIR_ABS_ARTICLE = path.join(
   __dirname,
   "..",
-  UPLOAD_DIR_NAME_ARTICLE
+  UPLOAD_DIR_NAME_ARTICLE,
 );
-
+// 压缩图
+const UPLOAD_DIR_ABS_THUMBNAIL = path.join(
+  __dirname,
+  "..",
+  UPLOAD_DIR_NAME,
+  "/thumbnail",
+);
+// 二次压缩图
+const UPLOAD_DIR_ABS_THUMBNAIL_DOUBLE = path.join(
+  __dirname,
+  "..",
+  UPLOAD_DIR_NAME,
+  "/thumbnailDouble",
+);
 // 确保项目首次启动时自动创建
 async function ensureUploadDir(params) {
   try {
     await fsPromises.mkdir(UPLOAD_DIR_ABS, { recursive: true });
     await fsPromises.mkdir(UPLOAD_DIR_ABS_COVER, { recursive: true });
     await fsPromises.mkdir(UPLOAD_DIR_ABS_ARTICLE, { recursive: true });
+    await fsPromises.mkdir(UPLOAD_DIR_ABS_THUMBNAIL, { recursive: true });
+    await fsPromises.mkdir(UPLOAD_DIR_ABS_THUMBNAIL_DOUBLE, {
+      recursive: true,
+    });
   } catch (err) {
     throw err;
   }
@@ -39,8 +59,8 @@ function fileFilter(req, file, cb) {
     return cb(
       new multer.MulterError(
         "LIMIT_UNEXPECTED_FILE",
-        `不支持的图片类型：${file.originalname} (${file.mimetype})`
-      )
+        `不支持的图片类型：${file.originalname} (${file.mimetype})`,
+      ),
     );
   }
   cb(null, true);
@@ -82,9 +102,8 @@ const coverStorage = multer.diskStorage({
 });
 // 图片存储
 const imageStorage = multer.diskStorage({
-  destination: async (req, file, cb) => {
-    const album = req.query?.album;
-    const targetDir = album ? path.join(UPLOAD_DIR_ABS, album) : UPLOAD_DIR_ABS;
+  destination: async (_req, file, cb) => {
+    const targetDir = UPLOAD_DIR_ABS;
     fsPromises
       .mkdir(targetDir, { recursive: true })
       .then(() => {
@@ -160,4 +179,6 @@ module.exports = {
   UPLOAD_DIR_ABS_ARTICLE,
   UPLOAD_DIR_NAME,
   UPLOAD_DIR_ABS_COVER,
+  UPLOAD_DIR_ABS_THUMBNAIL,
+  UPLOAD_DIR_ABS_THUMBNAIL_DOUBLE,
 };
