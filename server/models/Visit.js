@@ -1,16 +1,13 @@
 const mongoose = require("mongoose");
 const visitSchema = new mongoose.Schema({
   ip: String,
-  path: String,        // /article/123
-  articleId: String,   // 可选
   userAgent: String,
-  createdAt: {
+  visitTime: {
     type: Date,
-    default: Date.now
-  }
-});
-visitSchema.pre("save", function (next) {
-  this.createAt = Date.now();
-  next();
+    default: Date.now,
+  },
+  country: String,
+  region: String,
+  city: String,
 });
 module.exports = mongoose.model("Visit", visitSchema);

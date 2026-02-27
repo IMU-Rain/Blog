@@ -16,4 +16,12 @@ const getVisit = async (req, res) => {
     errorResponse(res, DB_ERROR, null, err.message, 500);
   }
 };
+const getVisitMap = async (req, res) => {
+  try {
+    const visitData = await visitSchema.find({});
+    successResponse(res, visitData, visitData.length, "访问数据获取成功");
+  } catch (err) {
+    errorResponse(res, DB_ERROR, null, err.message, 500);
+  }
+};
 module.exports = { getVisit };

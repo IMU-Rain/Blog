@@ -15,6 +15,7 @@ import type {
   VisualMapComponentOption,
 } from "echarts";
 
+// 注册 ECharts 组件
 echarts.use([
   TitleComponent,
   TooltipComponent,
@@ -23,66 +24,112 @@ echarts.use([
   MapChart,
   CanvasRenderer,
 ]);
-import worldJson from "@/assets/worldMap.json";
-const chartRef = ref<HTMLDivElement | null>(null);
-let myChart: echarts.ECharts | null = null;
 
-const data = [
-  { name: "China", value: 1400000000 },
-  { name: "United States of America", value: 333000000 },
-  { name: "India", value: 1410000000 },
+// 导入世界地图 JSON 数据
+import worldJson from "@/assets/worldMap.json";
+
+// 图表容器引用
+const chartRef = ref<HTMLDivElement | null>(null);
+// 图表实例
+let myChart: echarts.ECharts | null = null;
+// 窗口resize回调
+let resizeHandler: () => void;
+
+// 访客数据（名称需匹配worldMap.json中的国家名称）
+const visitorData = [
+  { name: "China", value: 140000 },
+  { name: "United States of America", value: 33300 },
+  { name: "India", value: 14100 },
+  { name: "Japan", value: 8900 },
+  { name: "Germany", value: 5600 },
+  { name: "United Kingdom", value: 4800 },
 ];
 
-onMounted(async () => {
+onMounted(() => {
   if (!chartRef.value) return;
+
+  // 初始化图表
   myChart = echarts.init(chartRef.value);
 
   echarts.registerMap("world", worldJson as any);
 
+  // 图表配置项
   const option: echarts.ComposeOption<
     TitleComponentOption &
       TooltipComponentOption &
       VisualMapComponentOption &
       MapSeriesOption
   > = {
-    title: { text: "浏览数据", left: "center" },
-    tooltip: { trigger: "item" },
+    tooltip: {
+      trigger: "item",
+      formatter: "{b}<br/>访客数：{c}",
+    },
+    visualMap: {
+      min: 0,
+      max: 150000,
+      left: "left",
+      bottom: 20,
+      calculable: true,
+
+      inRange: {
+        color: ["#e0f7fa", "#4dd0e1", "#0097a7", "#006064"],
+      },
+    },
     series: [
       {
-        name: "Population",
+        name: "访客数",
         type: "map",
-        map: "USA", // 这里用 USA 作为示例
-        roam: true, // 可缩放和平移
+        map: "world", // 必须和registerMap的第一个参数一致
+        roam: true,
+        zoom: 2,
+        center: [40, 30],
         emphasis: {
-          label: { show: true },
+          label: { show: true, fontSize: 12 },
+          itemStyle: { areaColor: "#ffcc80" },
         },
-        data: [
-          { name: "北京", value: 2170 },
-          { name: "上海", value: 2424 },
-          { name: "广东", value: 11346 },
-        ],
+        itemStyle: {
+          areaColor: "#f5f5f5",
+          borderColor: "#dddddd",
+          borderWidth: 0.5,
+        },
+        data: visitorData,
       },
     ],
   };
 
   myChart.setOption(option);
 
-  const onResize = () => myChart?.resize();
-  window.addEventListener("resize", onResize);
+  // 窗口自适应
+  resizeHandler = () => myChart?.resize();
+  window.addEventListener("resize", resizeHandler);
+});
 
-  onBeforeUnmount(() => {
-    window.removeEventListener("resize", onResize);
-    myChart?.dispose();
-    myChart = null;
-  });
+// 组件卸载时清理资源
+onBeforeUnmount(() => {
+  window.removeEventListener("resize", resizeHandler);
+  myChart?.dispose();
+  myChart = null;
 });
 </script>
 
 <template>
   <div class="map-container">
-    <div ref="chartRef" style="width: 100%; height: 100%"></div>
+    <div ref="chartRef" class="map"></div>
   </div>
 </template>
 
 <style scoped lang="less">
+.map-container {
+  width: 100%;
+  padding: 10px;
+  display: flex;
+  justify-content: center;
+  box-sizing: border-box;
+  align-items: center;
+  .map {
+    width: 100%;
+    height: 400px;
+    margin: 0 auto;
+  }
+}
 </style>
