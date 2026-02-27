@@ -51,10 +51,16 @@ onMounted(async () => {
       {
         name: "Population",
         type: "map",
-        map: "world",
-        roam: true,
-        emphasis: { label: { show: true } },
-        data,
+        map: "USA", // 这里用 USA 作为示例
+        roam: true, // 可缩放和平移
+        emphasis: {
+          label: { show: true },
+        },
+        data: [
+          { name: "北京", value: 2170 },
+          { name: "上海", value: 2424 },
+          { name: "广东", value: 11346 },
+        ],
       },
     ],
   };

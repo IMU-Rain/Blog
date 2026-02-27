@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const photoSchema = new mongoose.Schema({
-  filename: {
+  fileId: { type: String, require: true },
+  fileName: {
     type: String,
     trim: true,
     unique: true,
@@ -29,16 +30,12 @@ const photoSchema = new mongoose.Schema({
     trim: true,
     required: true,
   },
-  path: {
+  url: {
     type: String,
     required: true,
   },
   size: {
     type: Number,
-    required: true,
-  },
-  mimetype: {
-    type: String,
     required: true,
   },
   description: {
@@ -49,9 +46,8 @@ const photoSchema = new mongoose.Schema({
     type: Boolean,
     default: true,
   },
-  // models/photo.js
-  smallThumbPath: { type: String, default: "" },
-  bigThumbPath: { type: String, default: "" },
+  smallThumbUrl: { type: String, default: "" },
+  bigThumbUrl: { type: String, default: "" },
   width: Number,
   height: Number,
   shotTime: {

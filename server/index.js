@@ -29,6 +29,7 @@ const duxiuIndexRoutes = require("./routes/duxiuIndex");
 const articleImageRoutes = require("./routes/articleImage");
 const loginRoutes = require("./routes/login");
 const visitRoutes = require("./routes/visit");
+const uploadRoutes = require("./routes/uploader");
 const cookieParser = require("cookie-parser");
 app.use(cookieParser());
 app.use("/api/articles", articleRoutes);
@@ -39,6 +40,7 @@ app.use("/api/duxiuIndex", duxiuIndexRoutes);
 app.use("/uploads", express.static(uploadPath));
 app.use("/api/login", loginRoutes);
 app.use("/api/visit", visitRoutes);
+app.use("/api/file", uploadRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
