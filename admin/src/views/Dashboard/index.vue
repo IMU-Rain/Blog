@@ -60,7 +60,7 @@ onMounted(() => {
       <ul class="cards">
         <li class="card" v-for="item in cardData"><DataCard :meta="item" /></li>
       </ul>
-      <ViewerMap />
+      <ViewerMap class="map" />
     </div>
   </div>
 </template>
@@ -82,6 +82,10 @@ onMounted(() => {
           transform: scale(1.05);
         }
       }
+    }
+    .map {
+      width: 100%;
+      height: 500px;
     }
   }
 }
