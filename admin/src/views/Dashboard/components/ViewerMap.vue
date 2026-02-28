@@ -27,6 +27,7 @@ echarts.use([
 
 // 导入世界地图 JSON 数据
 import worldJson from "@/assets/worldMap.json";
+import { getViewerMap } from "@/api/DataCard";
 
 // 图表容器引用
 const chartRef = ref<HTMLDivElement | null>(null);
@@ -36,16 +37,8 @@ let myChart: echarts.ECharts | null = null;
 let resizeHandler: () => void;
 
 // 访客数据（名称需匹配worldMap.json中的国家名称）
-const visitorData = [
-  { name: "China", value: 140000 },
-  { name: "United States of America", value: 33300 },
-  { name: "India", value: 14100 },
-  { name: "Japan", value: 8900 },
-  { name: "Germany", value: 5600 },
-  { name: "United Kingdom", value: 4800 },
-];
-
-onMounted(() => {
+const visitorData = ref([]);
+const initMap = () => {
   if (!chartRef.value) return;
 
   // 初始化图表
@@ -66,11 +59,10 @@ onMounted(() => {
     },
     visualMap: {
       min: 0,
-      max: 150000,
+      max: 5000,
       left: "left",
-      bottom: 20,
+      bottom: 100,
       calculable: true,
-
       inRange: {
         color: ["#e0f7fa", "#4dd0e1", "#0097a7", "#006064"],
       },
@@ -92,7 +84,7 @@ onMounted(() => {
           borderColor: "#dddddd",
           borderWidth: 0.5,
         },
-        data: visitorData,
+        data: visitorData.value,
       },
     ],
   };
@@ -102,6 +94,17 @@ onMounted(() => {
   // 窗口自适应
   resizeHandler = () => myChart?.resize();
   window.addEventListener("resize", resizeHandler);
+};
+onMounted(() => {
+  getViewerMap()
+    .then((res) => {
+      if (res.code === 200) {
+        visitorData.value = res.data;
+      }
+    })
+    .finally(() => {
+      initMap();
+    });
 });
 
 // 组件卸载时清理资源

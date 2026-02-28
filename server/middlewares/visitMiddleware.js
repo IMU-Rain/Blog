@@ -57,8 +57,8 @@ async function getIpLocation(ip) {
       res.on("end", () => {
         try {
           // 解析响应数据，兼容接口返回格式
-          const result = JSON.parse(data);
-          console.log(result)
+          let result = JSON.parse(data);
+          if (result[0] === "中国") result[0] = "China";
           resolve(result.data ? result.data[0] : result);
         } catch (err) {
           // 解析JSON失败时返回默认值

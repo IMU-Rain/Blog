@@ -12,3 +12,6 @@ export function getPhotoNumber() {
 export function getDuxiuIndex() {
   return useReuest("get", "/duxiuindex");
 }
+export function getViewerMap() {
+  return useReuest("get", "/visit/map");
+}
