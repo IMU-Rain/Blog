@@ -60,8 +60,13 @@ const initMap = () => {
     visualMap: {
       min: 0,
       max: 5000,
-      left: "left",
-      bottom: 100,
+      left: 14,
+      bottom: 8,
+      itemWidth: 14,
+      itemHeight: 70,
+      textStyle: {
+        color: "var(--text-muted)",
+      },
       calculable: true,
       inRange: {
         color: ["#e0f7fa", "#4dd0e1", "#0097a7", "#006064"],
@@ -73,8 +78,12 @@ const initMap = () => {
         type: "map",
         map: "world", // 必须和registerMap的第一个参数一致
         roam: true,
-        zoom: 2,
-        center: [40, 30],
+        layoutCenter: ["52%", "50%"],
+        layoutSize: "105%",
+        scaleLimit: {
+          min: 0.8,
+          max: 4,
+        },
         emphasis: {
           label: { show: true, fontSize: 12 },
           itemStyle: { areaColor: "#ffcc80" },
@@ -124,14 +133,20 @@ onBeforeUnmount(() => {
 <style scoped lang="less">
 .map-container {
   width: 100%;
-  padding: 10px;
+  height: clamp(380px, 56vh, 620px);
+  padding: 8px;
   display: flex;
   justify-content: center;
+  border-radius: 16px;
+  border: 1px solid var(--line-color);
+  background: var(--surface-color);
+  box-shadow: 0 8px 24px var(--shadow-color);
   box-sizing: border-box;
   align-items: center;
+  overflow: hidden;
   .map {
     width: 100%;
-    height: 400px;
+    height: 100%;
     margin: 0 auto;
   }
 }

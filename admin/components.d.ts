@@ -12,19 +12,13 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     'IconFluent:contentView24Regular': typeof import('~icons/fluent/content-view24-regular')['default']
-    'IconFluent:contentView28Regular': typeof import('~icons/fluent/content-view28-regular')['default']
     'IconIc:outlineHome': typeof import('~icons/ic/outline-home')['default']
-    IconMdiHome: typeof import('~icons/mdi/home')['default']
-    'IconRi:dashboard3Line': typeof import('~icons/ri/dashboard3-line')['default']
-    'IconStash:articleLight': typeof import('~icons/stash/article-light')['default']
-    'IconStash:dashboardDuotone': typeof import('~icons/stash/dashboard-duotone')['default']
     'IconTabler:photo': typeof import('~icons/tabler/photo')['default']
-    IconTablerArticle: typeof import('~icons/tabler/article')['default']
-    IconTablerPhotoAlbum: typeof import('~icons/tabler/photo-album')['default']
     IconTablerUserCircle: typeof import('~icons/tabler/user-circle')['default']
     MaxBar: typeof import('./src/components/MaxBar.vue')['default']
     MaxButton: typeof import('./src/components/MaxButton.vue')['default']
     MaxInput: typeof import('./src/components/MaxInput.vue')['default']
+    MaxTable: typeof import('./src/components/MaxTable/index.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
   }

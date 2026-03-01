@@ -17,9 +17,8 @@ const props = defineProps(["meta"]);
 
 <style scoped lang="less">
 @import "@/style/mixin.less";
-@import "@/style/index.less";
 .card-container {
-  border: 2px solid rgba(120, 120, 120, 0.2);
+  border: 1px solid var(--line-color);
   display: flex;
   justify-content: space-between;
   padding: 0 25px;
@@ -27,8 +26,9 @@ const props = defineProps(["meta"]);
   width: 100%;
   align-items: center;
   border-radius: @card-roudend;
-  background-color: @card-background-color;
-  box-shadow: 0 0 8px rgba(139, 210, 231, 0.5);
+  color: var(--text-color);
+  background-color: var(--surface-color);
+  box-shadow: 0 8px 18px var(--shadow-color);
   .info {
     display: flex;
     flex-direction: column;
@@ -53,8 +53,21 @@ const props = defineProps(["meta"]);
       transform: translate(-50%, -50%);
       left: 50%;
       top: 50%;
-      background-color: rgba(130, 128, 255, 0.4);
+      background-color: var(--primary-weak);
       border-radius: 16px;
+    }
+  }
+}
+
+@media (max-width: 640px) {
+  .card-container {
+    min-height: 92px;
+    padding: 0 16px;
+
+    .info {
+      .title {
+        font-size: 1rem;
+      }
     }
   }
 }

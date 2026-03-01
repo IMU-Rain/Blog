@@ -13,11 +13,9 @@
     "noUncheckedSideEffectImports": true,
     // 使用@别名设定
     "moduleResolution": "bundler",
-    "ignoreDeprecations": "6.0",
-    "baseUrl": ".",
-    // 保留 paths 别名配置（无需 baseUrl）
+    // 保留 paths 别名配置
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["./src/*"]
     },
     "esModuleInterop": true,
     "skipLibCheck": true

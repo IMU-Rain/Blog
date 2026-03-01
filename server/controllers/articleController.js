@@ -1,5 +1,6 @@
 const path = require("path");
 const fsPromise = require("fs/promises");
+const OpenAI = require("openai");
 const Article = require("../models/article");
 const ArticlePhoto = require("../models/articlePhoto");
 const {
@@ -14,51 +15,22 @@ const {
   PARAM_MISSING,
   DB_ERROR,
   PARAM_ERROR,
+  RESOURCE_NOT_FIND,
   RESOURCE_DELETE_FAIL,
   SERVER_ERROR,
 } = require("../utils/errorTypes");
 const { mkThumbnail } = require("../utils/image");
 // 创建文章
 const createArticle = async (req, res) => {
-  let articleData;
   try {
-    const cover = req.file;
-    const outputPath = UPLOAD_DIR_ABS_COVER;
-    const { thumbnailName } = await mkThumbnail(
-      cover.path,
-      outputPath,
-      cover.filename,
-      1200,
-    );
-    if (!cover) {
-      errorResponse(res, PARAM_MISSING, "封面图片未上传", 400);
-      return;
+    const articleData = req.body;
+    if (!articleData) {
+      errorResponse(res, PARAM_MISSING, err.message, 500);
     }
-    try {
-      articleData = JSON.parse(req.body.article);
-    } catch (parseErr) {
-      return errorResponse(
-        res,
-        PARAM_ERROR,
-        `JSON格式错误:${parseErr.message},位置:${parseErr.position}`,
-        400,
-      );
-    }
-    articleData.cover = `${UPLOAD_DIR_NAME_COVER}/${thumbnailName}`;
     const article = new Article(articleData);
     const saved = await article.save();
     successResponse(res, saved, "文章创建成功");
   } catch (err) {
-    if (err.name === "ValidationError") {
-      // 文章校验失败
-      const validationError = Object.values(err.errors)
-        .map((item) => `${item.path}:${item.message}`)
-        .join(";");
-      return errorResponse(res, PARAM_ERROR, err.message, 500);
-    } else if (err.message.includes("file") || err.message.includes("upload")) {
-      // 文章封面相关问题
-      return errorResponse(res, SERVER_ERROR, err.message, 500);
-    }
     errorResponse(res, DB_ERROR, err.message, 500);
   }
 };
@@ -86,7 +58,6 @@ const getArticleById = async (req, res) => {
   const id = req.params.id;
   try {
     const article = await Article.findById(id);
-    const url = article.cover;
     if (!article) {
       return errorResponse(
         res,
@@ -95,7 +66,7 @@ const getArticleById = async (req, res) => {
         404,
       );
     }
-    successResponse(res, { article, url });
+    successResponse(res, article);
   } catch (err) {
     errorResponse(res, SERVER_ERROR, err.message, 500);
   }
@@ -103,7 +74,10 @@ const getArticleById = async (req, res) => {
 // 更新文章
 const updateArticle = async (req, res) => {
   try {
-    const id = req.query.id;
+    const id = req.params.id || req.query.id;
+    if (!id) {
+      return errorResponse(res, PARAM_MISSING, "缺少文章ID", 400);
+    }
     const update = await Article.findByIdAndUpdate(
       id,
       { ...req.body, updateAt: new Date() }, // 保证更新时间更新
@@ -156,7 +130,38 @@ const deleteArticle = async (req, res) => {
     return errorResponse(res, RESOURCE_DELETE_FAIL, err.message, 500);
   }
 };
+// 获取文章AI摘要
+async function createExpert(req, res) {
+  try {
+    const content = req.body?.content;
+    if (!content || typeof content !== "string") {
+      return errorResponse(res, PARAM_MISSING, "缺少正文 content", 400);
+    }
+
+    const openai = new OpenAI({
+      baseURL: "https://api.deepseek.com",
+      apiKey: process.env.APIKEY || process.env.DEEPSEEK_API_KEY,
+    });
+    const completion = await openai.chat.completions.create({
+      messages: [
+        {
+          role: "system",
+          content: "你是一个中文写作助手，请生成不超过100字的文章摘要。",
+        },
+        {
+          role: "user",
+          content,
+        },
+      ],
+      model: "deepseek-chat",
+    });
+    successResponse(res, completion.choices[0].message.content, "摘要获取成功");
+  } catch (err) {
+    errorResponse(res, SERVER_ERROR, err.message, "500");
+  }
+}
 module.exports = {
+  createExpert,
   createArticle,
   getArticleInfo,
   getArticleById,

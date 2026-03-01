@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const articleSchema = new mongoose.Schema({
+  fileId: { type: String, require: true },
   title: {
     type: String,
     required: true,
@@ -41,7 +42,7 @@ const articleSchema = new mongoose.Schema({
     default: Date.now(),
   },
   containImg: {
-    type: [String],
+    type: [{ fileId: String, url: String }],
     default: [],
   },
 });
@@ -58,7 +59,7 @@ articleSchema.index(
       content: 3,
       excerpt: 2,
     },
-  }
+  },
 );
 // 保存前自动更新时间
 articleSchema.pre("save", function (next) {

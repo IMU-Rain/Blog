@@ -3,7 +3,7 @@ import router from "../router";
 import type { ResponseType } from "@/types/ResponseTypes";
 const http = axios.create({
   // baseURL: "https://www.maxbyte.fun/api/",
-  baseURL: "http://localhost:3000/api",
+  baseURL: import.meta.env.VITE_BASEURL + "api/",
   timeout: 5000,
   withCredentials: true,
   headers: {

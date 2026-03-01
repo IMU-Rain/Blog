@@ -73,6 +73,7 @@ onBeforeRouteUpdate((to) => {
 
 <style scoped lang="less">
 @import "@/style/index.less";
+@import "@/style/mixin.less";
 .container {
   width: 70%;
   height: 80px;
@@ -129,19 +130,10 @@ onBeforeRouteUpdate((to) => {
       height: 80px;
       position: absolute;
       transition: 0.5s;
-      border: 8px solid @background-color;
-      background-color: #29fd53;
+      border: 8px solid var(--bg-color);
+      background: #52fcff;
       transform: translateX(-50%);
       border-radius: 50%;
-    }
-  }
-}
-@media (prefers-color-scheme: dark) {
-  .container {
-    ul > {
-      .indicator {
-        border: 6px solid #121212;
-      }
     }
   }
 }

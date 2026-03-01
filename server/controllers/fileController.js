@@ -11,9 +11,11 @@ const uploader = async (req, res) => {
     return errorResponse(res, PARAM_MISSING, "未接收到文件", 400);
   }
   try {
-    const fileURL = `${UPLOAD_DIR_NAME}/origin/${file.filename}`;
+    const url = `${process.env.SERVER_URL}/${UPLOAD_DIR_NAME}/origin/${file.filename}`;
+    const path = `${UPLOAD_DIR_NAME}/origin/${file.filename}`;
     const data = {
-      url: fileURL,
+      url,
+      path,
       fileName: file.filename,
       originalName: file.originalname,
       size: file.size,

@@ -7,26 +7,26 @@ import {
 const routes: Array<RouteRecordRaw> = [
   {
     path: "/",
-    redirect: "/Dashboard",
+    redirect: "Dashboard",
     component: () => import("@/views/Layout/index.vue"),
     children: [
       {
-        path: "/Dashboard",
+        path: "Dashboard",
         name: "Dashboard",
         component: () => import("@/views/Dashboard/index.vue"),
       },
       {
-        path: "/Articles",
+        path: "Articles",
         name: "Articles",
         component: () => import("@/views/Articles/index.vue"),
       },
       {
-        path: "/Albums",
+        path: "Albums",
         name: "Albums",
         component: () => import("@/views/Albums/index.vue"),
       },
       {
-        path: "/About",
+        path: "About",
         name: "About",
         component: () => import("@/views/About/index.vue"),
       },
@@ -37,6 +37,11 @@ const routes: Array<RouteRecordRaw> = [
     name: "Login",
     component: () => import("@/views/Login/index.vue"),
   },
+  {
+    path: "/Articles/Edit",
+    name: "ArticleEditor",
+    component: () => import("@/views/Articles/components/Edit.vue"),
+  },
 ];
 const router = createRouter({
   routes,
@@ -45,15 +50,12 @@ const router = createRouter({
 // 验证token是否过期拦截器
 router.beforeEach(async (to, _before, next) => {
   const token = await cookieStore.get("token");
+
   if (to.path !== "/login") {
     if (!token) {
-      return router.push("/login");
+      return next("/login");
     }
-    if (Date.now() < token.expires) {
-      return next();
-    } else {
-      return router.push("/login");
-    }
+    return next();
   }
   next();
 });

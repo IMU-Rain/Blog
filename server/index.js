@@ -10,7 +10,7 @@ require("dotenv").config();
 // 中间件
 app.use(
   cors({
-    origin: process.env.BASE_URL,
+    origin: process.env.FRONTEND_URL,
     credentials: true,
   }),
 );

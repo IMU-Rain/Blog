@@ -25,6 +25,22 @@ export default function useReuest(
           .catch((err) => reject(err));
         break;
       case "post":
+        // 上传文件时必须走 multipart/form-data，不能沿用全局 application/json
+        if (data instanceof FormData) {
+          http
+            .post(path, data, {
+              headers: {
+                "Content-Type": "multipart/form-data",
+              },
+            })
+            .then((res) => {
+              handleResponse(res);
+            })
+            .catch((err) => {
+              reject(err);
+            });
+          break;
+        }
         http
           .post(path, data)
           .then((res) => {
@@ -41,6 +57,17 @@ export default function useReuest(
           .catch((err) => reject(err));
         break;
       case "put":
+        if (data instanceof FormData) {
+          http
+            .put(path, data, {
+              headers: {
+                "Content-Type": "multipart/form-data",
+              },
+            })
+            .then((res) => handleResponse(res))
+            .catch((err) => reject(err));
+          break;
+        }
         http
           .put(path, data)
           .then((res) => handleResponse(res))

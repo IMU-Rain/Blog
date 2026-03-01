@@ -67,14 +67,30 @@ onMounted(() => {
 
 <style scoped lang="less">
 .container {
-  width: 70%;
+  width: min(1260px, 94vw);
   margin: 0 auto;
+  min-height: calc(100vh - 170px);
+  color: var(--text-color);
+  .solgan {
+    h2,
+    h4 {
+      color: var(--text-color);
+    }
+
+    h4 {
+      color: var(--text-muted);
+    }
+  }
+
   .content {
-    margin-top: 2rem;
+    margin-top: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
     .cards {
       display: grid;
-      height: 120px;
-      gap: 2%;
+      min-height: 104px;
+      gap: 12px;
       grid-template-columns: repeat(4, 1fr);
       .card {
         transition: 0.2s;
@@ -85,7 +101,37 @@ onMounted(() => {
     }
     .map {
       width: 100%;
-      height: 500px;
+      height: clamp(300px, 44vh, 420px);
+    }
+  }
+}
+
+@media (max-width: 1024px) {
+  .container {
+    .content {
+      .cards {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .map {
+        height: clamp(280px, 40vh, 380px);
+      }
+    }
+  }
+}
+
+@media (max-width: 640px) {
+  .container {
+    .content {
+      margin-top: 1rem;
+
+      .cards {
+        grid-template-columns: 1fr;
+      }
+
+      .map {
+        height: 300px;
+      }
     }
   }
 }

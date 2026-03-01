@@ -27,11 +27,17 @@ const handleLogin = () => {
           <MaxInput
             v-model="loginData.username"
             placeholder="User Name"
+            icon="mdi:account-outline"
+            color="#4f7fb7"
+            :height="18"
           ></MaxInput>
           <MaxInput
             v-model="loginData.password"
             placeholder="Password"
             type="password"
+            icon="mdi:lock-outline"
+            color="#4f7fb7"
+            :height="18"
           ></MaxInput>
           <MaxButton size="large" color="relex" @click="handleLogin"
             >Sign in</MaxButton
@@ -43,7 +49,6 @@ const handleLogin = () => {
 </template>
 
 <style lang="less" scoped>
-@import "@/style/index.less";
 @import "@/style/mixin.less";
 .login-card-container {
   width: 100vw;
@@ -55,24 +60,28 @@ const handleLogin = () => {
   user-select: none;
   .login-card {
     overflow: hidden;
-    width: 70%;
-    height: 70%;
+    width: min(1080px, 92vw);
+    height: min(680px, 84vh);
+    border: 1px solid var(--line-color);
     border-radius: @card-roudend;
-    box-shadow: @card-shadow;
-    background-color: @card-background-color;
+    box-shadow: 0 14px 34px var(--shadow-color);
+    background-color: var(--surface-color);
     display: flex;
     .login-img {
       height: 100%;
-      max-width: 70%;
+      width: 58%;
+      object-fit: cover;
       border-radius: @card-roudend;
     }
     .login-form {
-      padding: 5% 40px;
+      width: 42%;
+      padding: 5% 32px;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       h2 {
+        color: var(--text-color);
         margin-bottom: 50px;
         overflow: hidden;
         position: relative;
@@ -80,7 +89,7 @@ const handleLogin = () => {
           content: "";
           width: 100%;
           height: 100%;
-          background-color: @card-background-color;
+          background-color: var(--surface-color);
           top: 0;
           left: 180%;
           transform: skew(-45deg);
@@ -90,9 +99,40 @@ const handleLogin = () => {
       }
       form {
         display: flex;
+        width: min(360px, 100%);
         gap: 30px;
         flex-direction: column;
         align-items: center;
+      }
+    }
+  }
+}
+
+@media (max-width: 920px) {
+  .login-card-container {
+    .login-card {
+      width: min(760px, 92vw);
+      min-height: 540px;
+      height: auto;
+      flex-direction: column;
+
+      .login-img {
+        width: 100%;
+        height: 220px;
+      }
+
+      .login-form {
+        width: 100%;
+        padding: 22px 24px 28px;
+
+        h2 {
+          margin-bottom: 22px;
+          font-size: 22px;
+        }
+
+        form {
+          gap: 20px;
+        }
       }
     }
   }
