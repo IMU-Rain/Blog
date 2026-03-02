@@ -1,5 +1,7 @@
 const path = require("path");
 const fs = require("fs/promises");
+const https = require("https");
+const { URL } = require("url"); // 用于解析API地址
 const {
   UPLOAD_DIR_NAME,
   UPLOAD_DIR_ABS_THUMBNAIL,
@@ -18,37 +20,59 @@ const {
   SERVER_ERROR,
   DB_ERROR,
   RESOURCE_NOT_FIND,
+  RESOURCE_DELETE_FAIL,
 } = require("../utils/errorTypes");
 // 图片上传
 const photoUpload = async (req, res) => {
   try {
-    let { albums } = req.body;
-    if (!albums) albums = "default";
-    for (const id of req.body.id) {
+    const album = req.body.album || "default";
+    const ids = Array.isArray(req.body.id) ? req.body.id : [];
+    let createdCount = 0;
+    let skippedCount = 0;
+
+    if (ids.length === 0) {
+      return errorResponse(res, PARAM_MISSING, "未获取到id", 400);
+    }
+
+    for (const id of ids) {
       const fileDoc = await fileSchema.findById(id);
-      const relativePath = fileDoc.url.replace(/^\/+/, "/");
-      // 2️⃣ 拼接成绝对路径
-      const absolutePath = path.join(
-        __dirname,
-        "..",
-        relativePath, // uploads/xxx.jpg
-      );
-      // 3️⃣ 现在可以安全读文件
-      const file = await fs.readFile(absolutePath);
-      // 获取exif信息
-      let exif = {};
-      exif = await exifr.parse(absolutePath, {
-        gps: true,
-        tiff: true,
-        ifd0: true,
-        exif: true,
-      });
-      if (!exif) {
-        exif = await exifr.parse(file.path);
+      if (!fileDoc) {
+        return errorResponse(
+          res,
+          RESOURCE_NOT_FIND,
+          `未从数据库中查询到文件: ${id}`,
+          404,
+        );
       }
-      // 图片浏览路径
+      const normalizedFileName = String(fileDoc.fileName || "").trim();
+      if (!normalizedFileName) {
+        return errorResponse(res, PARAM_MISSING, `文件名为空: ${id}`, 400);
+      }
+
+      const existed = await photoSchema.findOne({
+        $or: [
+          { fileId: String(id) },
+          { fileName: normalizedFileName },
+          { filename: normalizedFileName },
+        ],
+      });
+      if (existed) {
+        skippedCount += 1;
+        continue;
+      }
+
+      const relativePath = String(fileDoc.path || "").replace(/^[/\\]+/, "");
+      const absolutePath = path.join(__dirname, "..", relativePath);
+
+      const exif =
+        (await exifr.parse(absolutePath, {
+          gps: true,
+          tiff: true,
+          ifd0: true,
+          exif: true,
+        })) || {};
+
       const url = fileDoc.url;
-      // 创建较大缩略图
       const { thumbnailName: bigThumbName } = await mkThumbnail(
         absolutePath,
         UPLOAD_DIR_ABS_THUMBNAIL,
@@ -60,7 +84,6 @@ const photoUpload = async (req, res) => {
         "/thumbnail",
         bigThumbName,
       );
-      // // 创建最小缩略图
       const { thumbnailName: smallThumbName } = await mkThumbnail(
         path.join(UPLOAD_DIR_ABS_THUMBNAIL, bigThumbName),
         UPLOAD_DIR_ABS_THUMBNAIL_DOUBLE,
@@ -71,37 +94,147 @@ const photoUpload = async (req, res) => {
         "/thumbnailDouble",
         smallThumbName,
       );
-      const shotTime = new Date(
-        exif.DateTimeOriginal || exif.CreateDate || Date.now,
+      let shotTime = new Date(
+        exif.DateTimeOriginal || exif.CreateDate || Date.now(),
       );
+      if (Number.isNaN(shotTime.getTime())) {
+        shotTime = new Date();
+      }
       await new photoSchema({
-        fileName: fileDoc.fileName,
+        filename: normalizedFileName,
+        fileName: normalizedFileName,
         fileId: id,
         size: fileDoc.size,
-        album: file.album || "default",
+        album,
         originalName: fileDoc.originalName,
         url,
-        bigThumbUrl: bigThumbUrl,
-        smallThumbUrl: smallThumbUrl,
+        bigThumbUrl,
+        smallThumbUrl,
         camera: {
           make: exif.Make || "未知",
           model: exif.Model || "未知",
           iso: exif.ISO || null,
           focalLength: exif.FocalLength || null,
-          shutterSpeed: exif?.ExposureTime || null,
+          shutterSpeed: exif.ExposureTime || null,
         },
         shotTime,
-        width: exif.ExifImageWidth || exif.ImageWidth,
-        height: exif.ExifImageHeight || exif.ImageHeight,
+        width: exif.ExifImageWidth || exif.ImageWidth || null,
+        height: exif.ExifImageHeight || exif.ImageHeight || null,
         updateAt: Date.now(),
       }).save();
+      createdCount += 1;
     }
-    successResponse(res, "", "图片上传成功");
+    successResponse(
+      res,
+      { created: createdCount, skipped: skippedCount },
+      undefined,
+      "照片上传成功",
+    );
   } catch (err) {
     errorResponse(res, SERVER_ERROR, err.message, 500);
   }
 };
+// 图片AI总结生成
+async function createExpert(req, res) {
+  const photoId = req.body.id;
+  // 智谱AI的对话API端点
+  const apiUrl = "https://open.bigmodel.cn/api/paas/v4/chat/completions";
+  // 解析URL为hostname/path，方便构建https请求参数
+  const parsedUrl = new URL(apiUrl);
+  const image_url = `${process.env.BASEURL}/${path}`;
 
+  // 构建请求头
+  const headers = {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${process.env.ZHIPU_API_KEY}`,
+  };
+
+  // 构建请求体（与原代码参数完全一致）
+  const requestBody = JSON.stringify({
+    model: "glm-4.1v-thinking-flashx", // 模型名称
+    messages: [
+      {
+        role: "user",
+        content: [
+          {
+            type: "text",
+            text: `这是一个摄影照片，请你生成一段20个中文字符的点评`,
+          },
+          {
+            type: "image_url",
+            image_url: {
+              url: "https://picui.ogmua.cn/s1/2026/03/02/69a5332f6f151.webp",
+            },
+          }, // 修复原代码的参数格式错误
+        ],
+      },
+    ],
+  });
+
+  // 封装https请求为Promise
+  const requestPromise = new Promise((resolve, reject) => {
+    // 配置https请求选项
+    const options = {
+      hostname: parsedUrl.hostname,
+      path: parsedUrl.pathname,
+      method: "POST",
+      headers: {
+        ...headers,
+        "Content-Length": Buffer.byteLength(requestBody), // 必须指定请求体长度
+      },
+    };
+
+    // 创建请求
+    const req = https.request(options, (res) => {
+      let responseData = "";
+
+      // 接收响应数据（流式）
+      res.on("data", (chunk) => {
+        responseData += chunk;
+      });
+
+      // 响应接收完成
+      res.on("end", () => {
+        // 检查HTTP状态码
+        if (res.statusCode >= 200 && res.statusCode < 300) {
+          try {
+            const result = JSON.parse(responseData);
+            resolve(result);
+          } catch (parseError) {
+            reject(new Error(`解析响应失败: ${parseError.message}`));
+          }
+        } else {
+          reject(
+            new Error(
+              `API请求失败，状态码: ${res.statusCode}, 响应: ${responseData}`,
+            ),
+          );
+        }
+      });
+    });
+
+    // 请求错误处理
+    req.on("error", (error) => {
+      reject(new Error(`请求发送失败: ${error.message}`));
+    });
+
+    // 发送请求体
+    req.write(requestBody);
+    // 结束请求
+    req.end();
+  });
+
+  try {
+    // 发送请求并获取响应
+    const response = await requestPromise;
+    const content = response.choices[0].message.content;
+    successResponse(res, content, "摘要获取成功");
+  } catch (error) {
+    // 错误处理：打印详细信息并抛出
+    console.error("调用智谱AI API失败：", error.message);
+    errorResponse(res, SERVER_ERROR, error.message, "500");
+  }
+}
 // 图片删除
 const photoDelete = async (req, res) => {
   const photoId = req.body.id;
@@ -112,9 +245,13 @@ const photoDelete = async (req, res) => {
     for (const id of photoId) {
       const photo = await photoSchema.findById(id);
       if (!photo) {
-        return errorResponse(res, RESOURCE_NOT_FIND, "id不存在,请检查", 404);
+        return errorResponse(res, RESOURCE_NOT_FIND, "请检查传入id", 404);
       }
-      const filepath = path.join(__dirname, "..", photo.url);
+      const file = await fileSchema.findById(photo.fileId);
+      if (!file) {
+        return errorResponse(res, RESOURCE_NOT_FIND, "请检查传入id", 404);
+      }
+      const filepath = path.join(__dirname, "..", file.path);
       const smallThumbPath = path.join(__dirname, "..", photo.smallThumbUrl);
       const bigThumbPath = path.join(__dirname, "..", photo.bigThumbUrl);
       try {
@@ -124,8 +261,8 @@ const photoDelete = async (req, res) => {
       } catch (err) {
         return errorResponse(res, RESOURCE_DELETE_FAIL, err.message, 404);
       }
-      await photoSchema.findByIdAndDelete(photoId);
-      await fileSchema.findByIdAndDelete(photo.fileId);
+      await photoSchema.findOneAndDelete(id);
+      await fileSchema.findOneAndDelete(photo.fileId);
     }
     successResponse(res, "文件删除成功");
   } catch (err) {
@@ -155,7 +292,7 @@ const getImagesByAlbum = async (req, res) => {
   try {
     const album = req.query.album;
     if (!album) {
-      return errorResponse(res, PARAM_MISSING, "未获取到相册名", 400);
+      return errorResponse(res, PARAM_MISSING, "未获取到相册", 400);
     }
     const filter = { album };
     const photos = (
@@ -183,9 +320,85 @@ const getImagesByAlbum = async (req, res) => {
     return errorResponse(res, SERVER_ERROR, err.message, 500);
   }
 };
+
+// 获取单张图片详情
+const getPhotoDetail = async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!id) {
+      return errorResponse(res, PARAM_MISSING, "id参数缺失", 400);
+    }
+
+    const photo = await photoSchema.findById(id);
+    if (!photo) {
+      return errorResponse(res, RESOURCE_NOT_FIND, "图片不存在", 404);
+    }
+
+    return successResponse(res, photo, undefined, "图片详情获取成功");
+  } catch (err) {
+    return errorResponse(res, SERVER_ERROR, err.message, 500);
+  }
+};
+
+// 更新图片元信息（名称、描述、相册、标签等）
+const updatePhotoMeta = async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!id) {
+      return errorResponse(res, PARAM_MISSING, "id参数缺失", 400);
+    }
+
+    const { name, originalName, description, album, tags } = req.body || {};
+    const updateData = {
+      updateAt: Date.now(),
+    };
+
+    if (typeof name === "string" && name.trim()) {
+      updateData.originalName = name.trim();
+    }
+    if (typeof originalName === "string" && originalName.trim()) {
+      updateData.originalName = originalName.trim();
+    }
+    if (typeof description === "string") {
+      updateData.description = description.trim();
+    }
+    if (typeof album === "string" && album.trim()) {
+      updateData.album = album.trim();
+    }
+    if (Array.isArray(tags)) {
+      updateData.tags = tags.map((tag) => String(tag).trim()).filter(Boolean);
+    } else if (typeof tags === "string") {
+      updateData.tags = tags
+        .split(/[,，\n]/)
+        .map((tag) => tag.trim())
+        .filter(Boolean);
+    }
+
+    const updatableKeys = Object.keys(updateData).filter(
+      (key) => key !== "updateAt",
+    );
+    if (updatableKeys.length === 0) {
+      return errorResponse(res, PARAM_MISSING, "未提供可更新字段", 400);
+    }
+
+    const updated = await photoSchema.findByIdAndUpdate(id, updateData, {
+      new: true,
+    });
+    if (!updated) {
+      return errorResponse(res, RESOURCE_NOT_FIND, "图片不存在", 404);
+    }
+
+    return successResponse(res, updated, undefined, "图片信息更新成功");
+  } catch (err) {
+    return errorResponse(res, SERVER_ERROR, err.message, 500);
+  }
+};
 module.exports = {
   getImagesByAlbum,
+  createExpert,
   photoUpload,
   photoDelete,
   getImages,
+  getPhotoDetail,
+  updatePhotoMeta,
 };

@@ -2,7 +2,6 @@ const router = require("express").Router();
 const articleController = require("../controllers/articleController");
 const adminOnly = require("../middlewares/adminOnlyMiddleware");
 const authMiddleware = require("../middlewares/authMiddleware");
-const { JSONParseMiddleware } = require("../middlewares/JSONMiddleware");
 // 创建文章
 router.post(
   "/",

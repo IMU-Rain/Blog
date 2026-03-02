@@ -1,7 +1,10 @@
 const router = require("express").Router();
 const photosController = require("../controllers/photosController");
 router.post("/", photosController.photoUpload);
+router.post("/expert", photosController.createExpert);
 router.delete("/", photosController.photoDelete);
 router.get("/", photosController.getImages);
 router.get("/album", photosController.getImagesByAlbum);
+router.get("/:id", photosController.getPhotoDetail);
+router.put("/:id", photosController.updatePhotoMeta);
 module.exports = router;

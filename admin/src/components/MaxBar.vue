@@ -2,17 +2,17 @@
 import { ref, onMounted, nextTick } from "vue";
 import { useRoute, onBeforeRouteUpdate } from "vue-router";
 
-// 1. 显式定义TS类型，初始化值可设为空（后续会覆盖）
+// 1. 显式定义TS类型，初始化值可设为空
 const leftY = ref<string>("0px");
 // 获取当前路由实例
 const route = useRoute();
 
-// 封装：根据索引计算指示器left值（复用核心逻辑）
+// 封装：根据索引计算指示器left值
 const calcIndicatorLeft = (index: number) => {
   leftY.value = `${25 * (index - 1) + 12.5}%`;
 };
 
-// 路由和索引的映射表（核心：和RouterLink的to一一对应）
+// 路由和索引的映射表
 const routeToIndex = new Map([
   ["/Dashboard", 1],
   ["/Articles", 2],
@@ -26,14 +26,14 @@ const setLeftByRoute = () => {
   if (index) calcIndicatorLeft(index);
 };
 
-// 2. 页面初始化：根据当前路由设置初始位置（解决刷新/直接访问无位置问题）
+// 2. 页面初始化：根据当前路由设置初始位置
 onMounted(() => {
   nextTick(() => {
     setLeftByRoute();
   });
 });
 
-// 3. 监听路由切换（包括浏览器回退/前进）：同步更新位置
+// 3. 监听路由切换：同步更新位置
 onBeforeRouteUpdate((to) => {
   // 路由切换后，更新当前路由并重新计算位置
   const index = routeToIndex.get(to.path);

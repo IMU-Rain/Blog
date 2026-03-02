@@ -140,7 +140,7 @@ async function createExpert(req, res) {
 
     const openai = new OpenAI({
       baseURL: "https://api.deepseek.com",
-      apiKey: process.env.APIKEY || process.env.DEEPSEEK_API_KEY,
+      apiKey: process.env.DEEPSEEK_API_KEY || process.env.DEEPSEEK_API_KEY,
     });
     const completion = await openai.chat.completions.create({
       messages: [

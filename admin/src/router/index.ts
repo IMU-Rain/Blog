@@ -42,6 +42,11 @@ const routes: Array<RouteRecordRaw> = [
     name: "ArticleEditor",
     component: () => import("@/views/Articles/components/Edit.vue"),
   },
+  {
+    path: "/Albums/EditMeta",
+    name: "AlbumMetaEditor",
+    component: () => import("@/views/Albums/components/EditMeta.vue"),
+  },
 ];
 const router = createRouter({
   routes,

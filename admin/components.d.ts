@@ -21,5 +21,6 @@ declare module 'vue' {
     MaxTable: typeof import('./src/components/MaxTable/index.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    Toast: typeof import('./src/components/MaxMessage/Toast.vue')['default']
   }
 }

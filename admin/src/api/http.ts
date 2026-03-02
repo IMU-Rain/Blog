@@ -4,7 +4,7 @@ import type { ResponseType } from "@/types/ResponseTypes";
 const http = axios.create({
   // baseURL: "https://www.maxbyte.fun/api/",
   baseURL: import.meta.env.VITE_BASEURL + "api/",
-  timeout: 5000,
+  timeout: 20000,
   withCredentials: true,
   headers: {
     "Content-Type": "application/json",
@@ -12,7 +12,7 @@ const http = axios.create({
 });
 // 响应拦截器，提前预处理后端响应
 http.interceptors.response.use(
-  (response: AxiosResponse<ResponseType<any>>) => {
+  (response: AxiosResponse<ResponseType>) => {
     const { status, statusText } = response;
 
     switch (status) {

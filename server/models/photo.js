@@ -1,10 +1,15 @@
 const mongoose = require("mongoose");
 const photoSchema = new mongoose.Schema({
   fileId: { type: String, require: true },
+  // 兼容历史索引 filename_1，避免旧索引下 filename=null 触发重复键
+  filename: {
+    type: String,
+    trim: true,
+  },
   fileName: {
     type: String,
     trim: true,
-    unique: true,
+    required: true,
   },
   album: {
     type: String,
@@ -59,4 +64,6 @@ const photoSchema = new mongoose.Schema({
     default: Date.now,
   },
 });
+
+photoSchema.index({ fileName: 1 }, { unique: true });
 module.exports = mongoose.model("Photo", photoSchema);

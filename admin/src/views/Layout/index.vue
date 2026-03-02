@@ -6,8 +6,8 @@ import MaxBar from "@/components/MaxBar.vue";
   <div class="layout-shell">
     <div class="route-stage">
       <router-view v-slot="{ Component, route }">
-        <transition name="view-switch">
-          <component :is="Component" :key="route.fullPath" class="route-view" />
+        <transition name="view-switch" mode="out-in">
+          <component :is="Component" :key="route.path" class="route-view" />
         </transition>
       </router-view>
     </div>

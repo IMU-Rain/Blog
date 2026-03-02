@@ -10,8 +10,12 @@ onMounted(() => {
 <template>
   <div class="app-shell">
     <router-view v-slot="{ Component, route }">
-      <transition name="app-switch">
-        <component :is="Component" :key="route.fullPath" class="app-view" />
+      <transition name="app-switch" mode="out-in">
+        <component
+          :is="Component"
+          :key="route.matched[0]?.path || route.path"
+          class="app-view"
+        />
       </transition>
     </router-view>
   </div>

@@ -158,7 +158,7 @@ onMounted(() => {
           icon="icon-park-outline:left"
           height="16"
           color="#4f86d8"
-          @click="router.back()"
+          @click="router.push('/Dashboard')"
         >
           返回主页
         </MaxButton>

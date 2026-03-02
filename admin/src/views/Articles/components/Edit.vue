@@ -20,6 +20,7 @@ import {
   watch,
 } from "vue";
 import { uploadFile } from "@/api/File";
+import MaxMessage from "@/components/MaxMessage";
 
 type ArticleStatus = "default" | "published" | "archived";
 
@@ -418,7 +419,6 @@ const onSelectCover = async (event: Event) => {
     }
   }
 };
-
 const saveArticle = async () => {
   if (isSaving.value) return;
 
@@ -445,11 +445,15 @@ const saveArticle = async () => {
     isSaving.value = true;
 
     if (isEditMode.value) {
-      await updateArticle(routeId.value, payload);
-      window.alert("文章更新成功");
+      if (!payload._id) {
+        await createArticle(payload);
+      } else {
+        await updateArticle(routeId.value, payload);
+      }
+      MaxMessage({message:"文章更新成功",icon:"akar-icons:save"})
     } else {
       const res = await createArticle(payload);
-      window.alert("文章创建成功");
+       MaxMessage({message:"文章创建成功",icon:"akar-icons:save"})
 
       const newId = res.data?._id || res.data?.id;
       if (newId) {
@@ -732,7 +736,8 @@ onBeforeUnmount(() => {
     overflow: hidden;
     background: var(--surface-color);
     background-clip: padding-box;
-    box-shadow: 0 8px 22px color-mix(in srgb, var(--shadow-color) 78%, transparent);
+    box-shadow: 0 8px 22px
+      color-mix(in srgb, var(--shadow-color) 78%, transparent);
   }
 
   .topbar {
