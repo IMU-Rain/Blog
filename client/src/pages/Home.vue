@@ -18,7 +18,7 @@ import type { ArticleRaw } from "../types/article";
 import LoadingSkeleton from "../components/LoadingSkeleton.vue";
 import ErrorSkeleton from "../components/ErrorSkeleton.vue";
 import { onMounted } from "vue";
-import axios from "../api/axios";
+import { toAssetUrl } from "../hooks/url";
 const {
   data: articles,
   error,
@@ -26,13 +26,10 @@ const {
   run,
 } = useRequest<[ArticleRaw]>(getArticles);
 onMounted(() => {
-  const baseURL = axios.defaults.baseURL?.slice(
-    0,
-    axios.defaults.baseURL.length - 3
-  );
   run().then(() => {
     articles.value?.map((article) => {
-      article.url = `${baseURL}${article.url}`;
+      article.url = toAssetUrl(article.url);
+      console.log(article.url);
     });
   });
 });

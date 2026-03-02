@@ -1,12 +1,13 @@
 <template>
   <div class="photo-container" v-if="photo">
-    <img :src="photo.smallThumbnailPath" loading="lazy" class="thumbnail" />
+    <img :src="photo.smallThumbUrl" loading="lazy" class="thumbnail" />
   </div>
 </template>
 
 <script lang="ts" setup>
 import type { PhotoType } from "../types/photo";
-defineProps<{ photo: PhotoType }>();
+const props = defineProps<{ photo: PhotoType }>();
+console.log(props.photo);
 </script>
 <style scoped lang="less">
 @import "../style/theme.less";
@@ -34,7 +35,9 @@ defineProps<{ photo: PhotoType }>();
     pointer-events: none;
     box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.8);
     opacity: 0;
-    transition: opacity 0.3s ease, transform 0.2s ease;
+    transition:
+      opacity 0.3s ease,
+      transform 0.2s ease;
   }
   &:hover::after {
     transform: scale(1.03);

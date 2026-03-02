@@ -19,13 +19,12 @@ interface PhotoType {
   mimetype: string;
   description: string;
   isPublic: boolean;
-  smallThumbPath: string;
-  bigThumbPath: string;
-  smallThumbnailPath: string;
-  bigThumbnailPath: string;
+  bigThumbUrl: string;
+  smallThumbUrl: string;
   updateAt: string; // ISO 时间字符串
   __v: number;
   thumbnailUrl: string;
+  excerpt: string;
   url: string;
 }
 export type { PhotoType };

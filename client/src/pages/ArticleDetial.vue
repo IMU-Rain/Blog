@@ -3,15 +3,13 @@
     <LoadingSkeleton v-if="loading" />
     <ErrorSkeleton v-else-if="error" />
     <div v-else class="article-detail">
-      <img :src="articleData?.url" class="cover-img" />
+      <img :src="articleData?.cover" class="cover-img" />
       <article
-        v-html="md.render(articleData?.article.content || '')"
+        v-html="md.render(articleData?.content || '')"
         class="article-detail-content"
       ></article>
       <span class="createAt"
-        >写于&nbsp;{{
-          dayjs(articleData?.article.createAt).format("YYYY-MM-DD")
-        }}</span
+        >写于&nbsp;{{ dayjs(articleData?.createAt).format("YYYY-MM-DD") }}</span
       >
     </div>
     <Aside></Aside>
@@ -34,8 +32,8 @@ import hljs from "highlight.js";
 import "highlight.js/styles/monokai.css";
 import taskLists from "markdown-it-task-lists";
 import markdownItAttrs from "markdown-it-attrs";
-import axios from "../api/axios";
 import { onMounted } from "vue";
+import { toAssetUrl } from "../hooks/url";
 const md = new MarkdownIt({
   html: true,
   linkify: true,
@@ -70,13 +68,9 @@ const {
 } = useRequest<ArticleDetail>(getArticleDetail);
 onMounted(() => {
   run({ id: articleID }).then(() => {
-    document.title = String(articleData.value?.article.title);
-    const baseURL = axios.defaults.baseURL?.slice(
-      0,
-      axios.defaults.baseURL.length - 3
-    );
+    document.title = String(articleData.value?.title);
     if (articleData.value) {
-      articleData.value.url = `${baseURL}/${articleData.value.url}`;
+      articleData.value.cover = toAssetUrl(articleData.value.cover);
     }
   });
 });

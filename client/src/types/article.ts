@@ -7,7 +7,6 @@ interface ArticleRaw {
   createAt: string;
 }
 interface ArticleDetail {
-  article: {
     containImg: string[];
     _id: string;
     title: string;
@@ -20,8 +19,6 @@ interface ArticleDetail {
     createAt?: string;
     updateAt: string;
     __v: string;
-  };
-  url: string;
 }
 interface ArticleRawResponseType {
   message: string;

@@ -59,7 +59,7 @@ const initMap = () => {
     },
     visualMap: {
       min: 0,
-      max: 5000,
+      max: 3000,
       left: 14,
       bottom: 8,
       itemWidth: 14,
@@ -78,8 +78,8 @@ const initMap = () => {
         type: "map",
         map: "world", // 必须和registerMap的第一个参数一致
         roam: true,
-        layoutCenter: ["52%", "50%"],
-        layoutSize: "105%",
+        layoutCenter: ["50%", "50%"],
+        layoutSize: "200%",
         scaleLimit: {
           min: 0.8,
           max: 4,

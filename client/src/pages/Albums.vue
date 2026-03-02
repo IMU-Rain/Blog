@@ -40,7 +40,7 @@ import { useRequest } from "../hooks/useRequest";
 import type { PhotoType } from "../types/photo";
 import LoadingSkeleton from "../components/LoadingSkeleton.vue";
 import ErrorSkeleton from "../components/ErrorSkeleton.vue";
-import axios from "../api/axios";
+import { toAssetUrl } from "../hooks/url";
 
 const selectPhoto = ref();
 const index = ref();
@@ -52,16 +52,13 @@ const {
 } = useRequest<[PhotoType]>(getAllPhotos);
 
 onMounted(() => {
-  const url = axios.defaults.baseURL?.slice(
-    0,
-    axios.defaults.baseURL.length - 3
-  );
   run().then(() => {
     // 拼接最小缩略图，中间缩略图，原图路径
     photoList.value?.map((photo) => {
-      photo.smallThumbnailPath = `${url}${photo.smallThumbPath}`;
-      photo.bigThumbnailPath = `${url}${photo.bigThumbPath}`;
-      photo.url = `${url}${photo.path}`;
+      photo.smallThumbUrl = toAssetUrl(photo.smallThumbUrl);
+      console.log(photo.smallThumbUrl);
+      photo.bigThumbUrl = toAssetUrl(photo.bigThumbUrl);
+      photo.url = toAssetUrl(photo.url);
       return;
     });
   });

@@ -9,7 +9,7 @@
       </button>
       <div class="photo-detail" @click="emit('close')" v-show="isImageLoading">
         <img
-          :src="photoData.bigThumbnailPath"
+          :src="photoData.bigThumbUrl"
           class="photo"
           @load="isImageLoading = true"
         />
@@ -72,7 +72,7 @@ const getScaledSize = () => {
   const maxHeight = window.innerHeight * 0.8;
   const scaleRadio = Math.min(
     maxWidth / originalWidth,
-    maxHeight / originalHeight
+    maxHeight / originalHeight,
   );
   scaledWidth.value = scaleRadio * originalWidth;
   scaledHeight.value = scaleRadio * originalHeight;
