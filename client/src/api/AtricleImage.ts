@@ -18,7 +18,6 @@ export const ArticleImageSendApi = (files: [File]) => {
       },
     })
     .then((res) => {
-      console.log(res.data.data);
       res.data.data.forEach((item: resInterFace) => {
         const baseURL = `${axios.defaults.baseURL?.slice(
           0,

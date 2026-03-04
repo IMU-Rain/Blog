@@ -1,10 +1,12 @@
 <template>
-  <MainNav></MainNav>
-  <router-view v-slot="{ Component }" class="router-view">
-    <transition name="fade" mode="out-in">
-      <component :is="Component" />
-    </transition>
-  </router-view>
+  <MainNav />
+  <main class="router-view page-container">
+    <router-view v-slot="{ Component }">
+      <transition name="fade" mode="out-in">
+        <component :is="Component" />
+      </transition>
+    </router-view>
+  </main>
   <BackToTop class="back-to-top-btn" />
 </template>
 
@@ -27,25 +29,25 @@ onUnmounted(() => {
 
 <style scoped>
 .router-view {
-  width: 80%;
-  margin: 0 auto;
+  min-height: calc(100vh - 200px);
+  margin-bottom: 56px;
 }
 
 @media (max-width: 768px) {
   .router-view {
-    margin: 0;
-    width: 99vw;
-    overflow: hidden;
+    width: min(1280px, 96vw);
+    margin-bottom: 96px;
+    min-height: calc(100vh - 170px);
   }
 }
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
-  transform: scale(0.8);
+  transform: translateY(10px) scale(0.985);
 }
 .fade-enter-active,
 .fade-leave-active {
-  transition: all 0.5s ease;
+  transition: all 0.3s ease;
 }
 .fade-enter-to,
 .fade-leave-from {

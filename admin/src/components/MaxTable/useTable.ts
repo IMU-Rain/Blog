@@ -13,10 +13,10 @@ export interface UseTableResult<T extends RowRecord | RowRecord[]> {
 }
 
 export const useTable = <T extends RowRecord | RowRecord[]>(
-  initialData: DataFromInput<T> = [] as DataFromInput<T>,
+  initialData?: DataFromInput<T>,
   initialButtons: TableButton<RowFromInput<T>>[] = []
 ): UseTableResult<T> => {
-  const tableData = ref<DataFromInput<T>>(initialData)
+  const tableData = ref(initialData !== undefined ? initialData : ([] as unknown as DataFromInput<T>)) as Ref<DataFromInput<T>>
   const buttons = shallowRef<TableButton<RowFromInput<T>>[]>(initialButtons)
 
   return {

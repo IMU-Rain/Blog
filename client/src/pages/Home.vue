@@ -29,7 +29,6 @@ onMounted(() => {
   run().then(() => {
     articles.value?.map((article) => {
       article.url = toAssetUrl(article.url);
-      console.log(article.url);
     });
   });
 });
@@ -39,19 +38,20 @@ onMounted(() => {
 @import "../style/theme.less";
 .container {
   display: grid;
-  grid-template-columns: 11fr 4fr;
-  gap: 30px;
+  grid-template-columns: minmax(0, 11fr) minmax(270px, 4fr);
+  gap: 24px;
+  align-items: start;
   overflow: visible;
   .article-titles {
     display: flex;
-    gap: 30px;
+    gap: 20px;
     flex-direction: column;
   }
 }
-@media (max-width: 768px) {
+@media (max-width: 960px) {
   .container {
     grid-template-columns: 1fr;
-    width: 100vw;
+    width: 100%;
   }
 }
 </style>

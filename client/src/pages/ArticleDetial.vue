@@ -80,124 +80,131 @@ onMounted(() => {
 @import "../style/theme.less";
 .article-detail-container {
   display: grid;
-  grid-template-columns: 11fr 4fr;
-  gap: 30px;
+  grid-template-columns: minmax(0, 11fr) minmax(270px, 4fr);
+  gap: 24px;
+  align-items: start;
   .article-detail {
-    background-color: @card-background-color;
+    background: var(--surface-color);
+    border: 1px solid var(--line-color);
+    border-radius: 16px;
+    box-shadow: 0 10px 22px var(--shadow-color);
+    overflow: hidden;
     font-weight: 400;
     max-width: 1100px;
-    text-wrap: wrap;
-    .article-title {
-      padding: 0 24px;
-    }
+
     .cover-img {
       width: 100%;
-      max-height: 350px;
+      max-height: 380px;
       object-fit: cover;
+      border-bottom: 1px solid var(--line-color);
     }
+
     .article-detail-content {
-      overflow: wrap;
-      box-sizing: border-box;
-      color: @primary-color;
+      overflow-wrap: anywhere;
+      color: var(--text-color);
       white-space: pre-wrap;
-      padding: 0 24px;
+      padding: 22px 24px;
       width: 100%;
-      font-size: 22px;
-      font-weight: 500;
+      font-size: 20px;
+      line-height: 1.9;
+      h1,
+      h2,
+      h3,
+      h4 {
+        color: var(--text-color);
+        line-height: 1.4;
+      }
+      p,
+      li {
+        color: var(--text-muted);
+      }
+      a {
+        color: var(--primary-color);
+      }
       table {
         width: 100%;
+        border: 1px solid var(--line-color);
+        border-collapse: collapse;
+        border-radius: 10px;
+        overflow: hidden;
         th,
         td {
-          border: 1px solid #000;
+          border: 1px solid var(--line-color);
           text-align: center;
-          padding: 5px 0;
-          color: @accent-color;
+          padding: 8px 10px;
+          color: var(--text-color);
         }
         th {
-          color: @primary-color;
-          padding: 10px 0;
+          color: var(--text-color);
+          padding: 10px;
+          background: color-mix(in srgb, var(--panel-color) 72%, transparent);
         }
-        border-collapse: collapse;
       }
       pre {
         white-space: pre-wrap;
-        color: @accent-color;
+        color: var(--text-color);
         font-style: italic;
+        border: 1px solid color-mix(in srgb, var(--line-color) 88%, transparent);
+        border-radius: 12px;
+        padding: 12px 14px;
+        background: color-mix(in srgb, var(--panel-color) 66%, transparent);
+        overflow: auto;
       }
       blockquote {
-        padding-left: 20px;
-        border-left: 4px solid rgba(120, 120, 120, 0.3);
+        margin: 16px 0;
+        padding: 10px 14px;
+        border-left: 4px solid var(--primary-color);
+        border-radius: 10px;
+        background: color-mix(in srgb, var(--panel-color) 72%, transparent);
         display: flex;
         flex-direction: column;
         gap: 10px;
       }
-      ul {
+      ul,
+      ol {
         display: flex;
         flex-direction: column;
+        gap: 4px;
+        padding-left: 20px;
       }
       li {
         li {
           padding-left: 20px;
         }
       }
-      ol {
-        display: flex;
-        flex-direction: column;
-      }
       .hljs {
-        border-radius: 15px;
-        padding: 10px 20px;
-        color: @dark-primary-color;
+        border-radius: 12px;
+        padding: 14px 16px;
+        color: var(--text-color);
       }
     }
     .createAt {
-      padding: 0 24px;
-      color: @accent-color;
-      font-size: 24px;
-      font-weight: 800;
-      letter-spacing: 1px;
+      padding: 0 24px 22px;
+      color: var(--text-muted);
+      font-size: 16px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
       text-align: right;
       display: block;
     }
   }
 }
-@media (max-width: 768px) {
+@media (max-width: 960px) {
   .article-detail-container {
     grid-template-columns: 1fr;
-    max-width: 99vw;
-    overflow: hidden;
     .article-detail {
-      max-width: 100vw;
+      max-width: 100%;
       .cover-img {
-        max-width: 100vw;
-      }
-      .article-title {
-        padding: 10px;
+        max-height: 260px;
       }
       .createAt {
-        padding: 10px;
+        padding: 0 16px 16px;
       }
       .article-detail-content {
-        padding: 10px;
+        padding: 16px;
+        font-size: 17px;
         img {
-          max-width: 100vw;
-        }
-      }
-    }
-  }
-}
-@media (prefers-color-scheme: dark) {
-  .article-detail-container {
-    .article-detail {
-      background-color: @dark-card-background-color;
-      .createAt {
-        color: @dark-accent-color;
-      }
-      .article-detail-content {
-        font-size: 18px;
-        color: @dark-primary-color;
-        pre {
-          color: @dark-accent-color;
+          max-width: 100%;
         }
       }
     }

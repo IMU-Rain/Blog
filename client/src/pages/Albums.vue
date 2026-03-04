@@ -3,19 +3,19 @@
     <div class="albums-container-midden">
       <LoadingSkeleton v-if="loading" />
       <ErrorSkeleton v-else-if="error" />
-      <div class="error" v-else-if="error">Error,Plz retry!</div>
       <div
         class="album-container"
-        v-masonry
-        transition-duration="0.3s"
+        v-masonry="masonryId"
+        transition-duration="0s"
         item-selector=".item"
         v-else
       >
         <Photo
           v-for="(photo, index) in photoList"
+          :key="photo._id"
           :photo="photo"
           class="item"
-          v-masonry-tile
+          @loaded="handlePhotoLoaded"
           @click="showphotoDetail(index)"
         ></Photo>
       </div>
@@ -32,7 +32,7 @@
 </template>
 
 <script lang="ts" setup>
-import { onMounted, ref } from "vue";
+import { inject, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 import Photo from "../components/Photo.vue";
 import { getAllPhotos } from "../api/photo";
 import PhotoDetail from "../components/PhotoDetail.vue";
@@ -44,25 +44,48 @@ import { toAssetUrl } from "../hooks/url";
 
 const selectPhoto = ref();
 const index = ref();
+const photoList = ref<PhotoType[]>([]);
+const masonryId = "albumsMasonry";
+const redrawVueMasonry = inject<(id?: string) => void>("redrawVueMasonry");
+let masonryRedrawTimer: number | null = null;
+
+const scheduleMasonryRedraw = () => {
+  if (!redrawVueMasonry) {
+    return;
+  }
+  if (masonryRedrawTimer !== null) {
+    window.clearTimeout(masonryRedrawTimer);
+  }
+  masonryRedrawTimer = window.setTimeout(() => {
+    redrawVueMasonry(masonryId);
+    masonryRedrawTimer = null;
+  }, 60);
+};
 const {
-  data: photoList,
   loading,
   error,
   run,
-} = useRequest<[PhotoType]>(getAllPhotos);
+} = useRequest<PhotoType[]>(getAllPhotos);
 
-onMounted(() => {
-  run().then(() => {
-    // 拼接最小缩略图，中间缩略图，原图路径
-    photoList.value?.map((photo) => {
-      photo.smallThumbUrl = toAssetUrl(photo.smallThumbUrl);
-      console.log(photo.smallThumbUrl);
-      photo.bigThumbUrl = toAssetUrl(photo.bigThumbUrl);
-      photo.url = toAssetUrl(photo.url);
-      return;
-    });
-  });
+onMounted(async () => {
+  const res = await run();
+  if (!Array.isArray(res)) {
+    return;
+  }
+  // 一次性标准化 URL，避免逐字段修改导致 masonry 重排抖动
+  photoList.value = res.map((photo) => ({
+    ...photo,
+    smallThumbUrl: toAssetUrl(photo.smallThumbUrl),
+    bigThumbUrl: toAssetUrl(photo.bigThumbUrl),
+    url: toAssetUrl(photo.url),
+  }));
+  await nextTick();
+  scheduleMasonryRedraw();
 });
+
+const handlePhotoLoaded = () => {
+  scheduleMasonryRedraw();
+};
 
 const showphotoDetail = (selectIndex: number) => {
   selectPhoto.value = photoList.value![selectIndex];
@@ -74,37 +97,26 @@ const switchPhoto = (index: number) => {
   }
   showphotoDetail(index);
 };
+
+onBeforeUnmount(() => {
+  if (masonryRedrawTimer !== null) {
+    window.clearTimeout(masonryRedrawTimer);
+    masonryRedrawTimer = null;
+  }
+});
 </script>
 
 <style scoped lang="less">
+@import "../style/theme.less";
 .albums-container {
   max-width: 100%;
   .albums-container-midden {
-    margin: 0 auto;
-    width: inherit;
-    .loading {
-      font-weight: 1000;
-      font-size: 50px;
-      background-clip: text;
-      color: transparent;
-      background-image: linear-gradient(
-        90deg,
-        black 0%,
-        #888 30%,
-        #fff 50%,
-        #888 70%,
-        black 80%
-      );
-      background-size: 400%;
-      animation: shine 2s ease infinite;
-    }
-    @keyframes shine {
-      0% {
-        background-position: 100% center;
-      }
-      100% {
-        background-position: 0% center;
-      }
+    width: 100%;
+    min-height: 52vh;
+    .error {
+      padding: 20px;
+      text-align: center;
+      color: var(--text-muted);
     }
   }
 }
@@ -123,6 +135,7 @@ const switchPhoto = (index: number) => {
 @media (max-width: 420px) {
   .item {
     width: 100%;
+    margin: 0 0 14px;
   }
 }
 </style>

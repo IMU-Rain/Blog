@@ -10,6 +10,11 @@ import type {
 import { articleDelete, getArticleList } from "@/api/Articles";
 import MaxButton from "@/components/MaxButton.vue";
 import { useRouter } from "vue-router";
+import {
+  getErrorMessage,
+  showErrorMessage,
+  showSuccessMessage,
+} from "@/utils/message";
 
 interface TableRow {
   id: string;
@@ -111,12 +116,16 @@ const tableConfig: PlusColumn<TableRow>[] = [
     width: "200px",
   },
 ];
-const handleDelete = (id: string) => {
-  articleDelete(id).then((res) => {
+const handleDelete = async (id: string) => {
+  try {
+    const res = await articleDelete(id);
     if (res.code === 200) {
+      showSuccessMessage("文章删除成功", "solar:trash-bin-minimalistic-outline");
       setTableData();
     }
-  });
+  } catch (error) {
+    showErrorMessage(getErrorMessage(error, "文章删除失败"));
+  }
 };
 const handleEdit = (id: string) => {
   router.push({ path: "/Articles/Edit", query: { id } });
@@ -134,15 +143,19 @@ const onTableAction = (payload: TableActionPayload<TableRow>) => {
 };
 const router = useRouter();
 const setTableData = () => {
-  getArticleList().then((res) => {
-    if (res.code === 200) {
-      res.data.forEach((item: TableRow) => {
-        const baseURL = import.meta.env.VITE_BASEURL;
-        item.url = baseURL + item.url;
-      });
-      tableData.value = res.data;
-    }
-  });
+  getArticleList()
+    .then((res) => {
+      if (res.code === 200) {
+        res.data.forEach((item: TableRow) => {
+          const baseURL = import.meta.env.VITE_BASEURL;
+          item.url = baseURL + item.url;
+        });
+        tableData.value = res.data;
+      }
+    })
+    .catch((error) => {
+      showErrorMessage(getErrorMessage(error, "文章列表加载失败"));
+    });
 };
 onMounted(() => {
   setTableData();

@@ -16,6 +16,8 @@ const allowedOrigins = [
     .filter(Boolean),
   "http://localhost:5173",
   "http://localhost:5174",
+  "https://maxbyte.fun",
+  "https://www.maxbyte.fun",
 ].filter(Boolean);
 
 app.use(
@@ -27,13 +29,17 @@ app.use(
       callback(new Error("CORS blocked for origin: " + origin));
     },
     credentials: true,
+    // 新增：允许的请求方法（覆盖登录接口的 POST 方法）
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    // 新增：允许的请求头（登录接口需要 Content-Type 等）
+    allowedHeaders: ["Content-Type", "Authorization", "Cookie"],
   }),
 );
 app.use(express.json());
 app.use(visitMiddleware);
 // 连接数据库
 mongoose
-  .connect("mongodb://localhost:27017/blog")
+  .connect(process.env.MONGODB_URL)
   .then(() => console.log("数据库连接成功"))
   .catch((err) => console.log(err));
 // 路由引入及使用

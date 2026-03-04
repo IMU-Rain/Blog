@@ -1,10 +1,12 @@
 const router = require("express").Router();
 const photosController = require("../controllers/photosController");
-router.post("/", photosController.photoUpload);
-router.post("/expert", photosController.createExpert);
-router.delete("/", photosController.photoDelete);
+const authMiddleware = require("../middlewares/authMiddleware");
+const adminOnly = require("../middlewares/adminOnlyMiddleware");
+router.post("/", authMiddleware, adminOnly, photosController.photoUpload);
+router.post("/expert", authMiddleware, adminOnly, photosController.createExpert);
+router.delete("/", authMiddleware, adminOnly, photosController.photoDelete);
 router.get("/", photosController.getImages);
 router.get("/album", photosController.getImagesByAlbum);
 router.get("/:id", photosController.getPhotoDetail);
-router.put("/:id", photosController.updatePhotoMeta);
+router.put("/:id", authMiddleware, adminOnly, photosController.updatePhotoMeta);
 module.exports = router;

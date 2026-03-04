@@ -6,3 +6,7 @@ type loginData = {
 export function login(data: loginData) {
   return useReuest("post", "/login", data);
 }
+
+export function getLoginUser() {
+  return useReuest("get", "/login");
+}

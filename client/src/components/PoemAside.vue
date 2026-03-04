@@ -69,41 +69,36 @@ onMounted(() => {
 <style scoped lang="less">
 @import "../style/theme.less";
 .poem-aside {
-  background-color: @card-background-color;
-  padding: 14px;
-  font-size: 16px;
-  height: fit-content;
-  text-wrap: 0;
+  background: var(--surface-color);
+  border: 1px solid var(--line-color);
+  border-radius: 16px;
+  box-shadow: 0 8px 18px var(--shadow-color);
+  padding: 18px 16px;
+  font-size: 15px;
+  line-height: 1.75;
   font-weight: 400;
-  text-wrap: nowrap;
+
   .welcome-word {
     display: block;
-    color: @primary-color;
-    margin-bottom: 20px;
+    color: var(--text-color);
+    margin: 0 0 14px;
     font-size: 16px;
-    font-size: 700;
+    font-weight: 700;
     text-align: right;
   }
   .poem {
-    color: rgb(155, 155, 155);
+    color: var(--text-muted);
     .poem-content {
-      font-weight: 1000;
+      margin: 0 0 8px;
+      font-weight: 700;
       text-align: right;
-      text-wrap: wrap;
-      margin-bottom: 10px;
+      overflow-wrap: anywhere;
     }
     .poem-title {
+      margin: 0;
       font-weight: 300;
       font-size: 13px;
       text-align: right;
-    }
-  }
-}
-@media (prefers-color-scheme: dark) {
-  .poem-aside {
-    background-color: @dark-card-background-color;
-    .welcome-word {
-      color: @dark-accent-color;
     }
   }
 }

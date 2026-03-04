@@ -20,7 +20,11 @@ import {
   watch,
 } from "vue";
 import { uploadFile } from "@/api/File";
-import MaxMessage from "@/components/MaxMessage";
+import {
+  getErrorMessage,
+  showErrorMessage,
+  showSuccessMessage,
+} from "@/utils/message";
 
 type ArticleStatus = "default" | "published" | "archived";
 
@@ -365,7 +369,7 @@ const generateExcerptByAI = async () => {
 
   const plain = stripMarkdown(articleData.value.content || "");
   if (!plain) {
-    window.alert("请先输入正文内容，再生成摘要");
+    showErrorMessage("请先输入正文内容，再生成摘要");
     return;
   }
 
@@ -374,10 +378,10 @@ const generateExcerptByAI = async () => {
     const res = await createExpert(articleData.value.content);
     if (res.code === 200) {
       articleData.value.excerpt = String(res.data || "").slice(0, 500);
+      showSuccessMessage("摘要生成成功", "mdi:robot-outline");
     }
   } catch (error) {
-    console.error(error);
-    window.alert("摘要生成失败，请稍后重试");
+    showErrorMessage(getErrorMessage(error, "摘要生成失败，请稍后重试"));
   } finally {
     isGeneratingExcerpt.value = false;
   }
@@ -411,8 +415,7 @@ const onSelectCover = async (event: Event) => {
     await nextTick();
     await initImageView();
   } catch (error) {
-    console.error(error);
-    window.alert("封面上传失败，请稍后重试");
+    showErrorMessage(getErrorMessage(error, "封面上传失败，请稍后重试"));
   } finally {
     if (coverInputRef.value) {
       coverInputRef.value.value = "";
@@ -425,12 +428,12 @@ const saveArticle = async () => {
   ensureFileId();
 
   if (!articleData.value.title.trim()) {
-    window.alert("请填写文章标题");
+    showErrorMessage("请填写文章标题");
     return;
   }
 
   if (!articleData.value.content.trim()) {
-    window.alert("文章内容不能为空");
+    showErrorMessage("文章内容不能为空");
     return;
   }
 
@@ -450,10 +453,10 @@ const saveArticle = async () => {
       } else {
         await updateArticle(routeId.value, payload);
       }
-      MaxMessage({message:"文章更新成功",icon:"akar-icons:save"})
+      showSuccessMessage("文章更新成功", "akar-icons:save");
     } else {
       const res = await createArticle(payload);
-       MaxMessage({message:"文章创建成功",icon:"akar-icons:save"})
+      showSuccessMessage("文章创建成功", "akar-icons:save");
 
       const newId = res.data?._id || res.data?.id;
       if (newId) {
@@ -461,8 +464,7 @@ const saveArticle = async () => {
       }
     }
   } catch (error) {
-    console.error(error);
-    window.alert("保存失败，请稍后重试");
+    showErrorMessage(getErrorMessage(error, "保存失败，请稍后重试"));
   } finally {
     isSaving.value = false;
   }
@@ -498,8 +500,7 @@ const initArticle = async () => {
       _id: raw._id,
     };
   } catch (error) {
-    console.error(error);
-    window.alert("文章加载失败");
+    showErrorMessage(getErrorMessage(error, "文章加载失败"));
   }
 };
 
@@ -516,32 +517,36 @@ const onUploadImg = async (
   files: File[],
   callback: (urls: string[]) => void,
 ) => {
-  const res = await Promise.all(
-    files.map((file: File) => {
-      const form = new FormData();
-      form.append("image", file);
-      return uploadFile(form);
-    }),
-  );
+  try {
+    const res = await Promise.all(
+      files.map((file: File) => {
+        const form = new FormData();
+        form.append("image", file);
+        return uploadFile(form);
+      }),
+    );
 
-  // md-editor 需要的是可直接插入 markdown 的图片 URL
-  callback(res.map((item: any) => item.data.url));
+    // md-editor 需要的是可直接插入 markdown 的图片 URL
+    callback(res.map((item: any) => item.data.url));
 
-  // 将上传返回的文件 id 写入 articleData.containImg，避免重复
-  const existMap = new Map(
-    articleData.value.containImg.map((item) => [item.fileId, item]),
-  );
+    // 将上传返回的文件 id 写入 articleData.containImg，避免重复
+    const existMap = new Map(
+      articleData.value.containImg.map((item) => [item.fileId, item]),
+    );
 
-  res.forEach((item: any) => {
-    const file = item.data || {};
-    const fileId = file._id || file.id || "";
-    const url = normalizePath(file.path || file.url || "");
-    if (fileId && url) {
-      existMap.set(fileId, { fileId, url });
-    }
-  });
+    res.forEach((item: any) => {
+      const file = item.data || {};
+      const fileId = file._id || file.id || "";
+      const url = normalizePath(file.path || file.url || "");
+      if (fileId && url) {
+        existMap.set(fileId, { fileId, url });
+      }
+    });
 
-  articleData.value.containImg = Array.from(existMap.values());
+    articleData.value.containImg = Array.from(existMap.values());
+  } catch (error) {
+    showErrorMessage(getErrorMessage(error, "正文图片上传失败，请稍后重试"));
+  }
 };
 
 watch(

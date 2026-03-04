@@ -23,46 +23,62 @@ const scrollToTop = () => {
 @import "../style/theme.less";
 .back-to-top-btn {
   z-index: 999;
-  width: 50px;
-  height: 50px;
-  padding: 5px;
-  background-color: rgba(88, 88, 88, 0.4);
+  width: 48px;
+  height: 48px;
+  padding: 10px;
+  border: 1px solid color-mix(in srgb, var(--line-color) 88%, transparent);
+  background: color-mix(in srgb, var(--panel-color) 82%, transparent);
+  box-shadow: 0 8px 18px var(--shadow-color);
+  backdrop-filter: blur(6px);
   border-radius: 50%;
   cursor: pointer;
   opacity: 0;
   position: fixed;
-  right: 200px;
-  bottom: 200px;
+  right: 28px;
+  bottom: 46px;
   pointer-events: none;
-  transition: opacity 0.4s ease, background-color 0.25s ease;
+  transform: translateY(8px);
+  transition:
+    opacity 0.3s ease,
+    transform 0.3s ease,
+    background-color 0.2s ease,
+    border-color 0.2s ease;
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
   &:hover {
-    background-color: rgba(88, 88, 88, 0.8);
+    background: color-mix(in srgb, var(--primary-color) 86%, var(--surface-color));
+    border-color: color-mix(in srgb, var(--primary-color) 50%, var(--line-color));
+    img {
+      opacity: 1;
+      filter: brightness(0) invert(1);
+    }
   }
   img {
     transform: rotate(180deg);
     width: 100%;
+    opacity: 0.82;
+    transition:
+      opacity 0.2s ease,
+      filter 0.2s ease;
     background-color: transparent;
   }
 }
 .show {
   opacity: 1;
   pointer-events: auto;
+  transform: translateY(0);
 }
-@media (max-width: 768px){
-   .back-to-top-btn{
-    display: none;
-   }
-}
-@media (prefers-color-scheme: dark) {
+@media (max-width: 1200px) {
   .back-to-top-btn {
-    background-color: rgba(125, 125, 125, 0.6);
-    &:hover {
-      background-color: rgba(125, 125, 125, 0.4);
-    }
+    right: 18px;
+    bottom: 36px;
+  }
+}
+@media (max-width: 768px) {
+  .back-to-top-btn {
+    display: none;
   }
 }
 </style>

@@ -15,6 +15,3 @@ yarn-error.log*
 
 # 上传测试文件
 TestArticleUpload.json
-
-# 前端请求通用文件
-client/src/api/axios.ts

@@ -5,28 +5,29 @@
 <script lang="ts" setup></script>
 
 <style scoped lang="less">
+@import "../style/theme.less";
 .skeleton {
-  font-weight: 1000;
-  font-size: 50px;
+  padding: 42px 20px;
+  text-align: center;
+  font-weight: 700;
+  font-size: clamp(22px, 4vw, 38px);
   background-clip: text;
   color: transparent;
   background-image: linear-gradient(
-    90deg,
-    black 0%,
-    #888 30%,
-    #fff 50%,
-    #888 70%,
-    black 80%
+    100deg,
+    color-mix(in srgb, var(--text-muted) 76%, transparent) 0%,
+    var(--text-color) 42%,
+    color-mix(in srgb, var(--text-muted) 76%, transparent) 78%
   );
   background-size: 400%;
-  animation: shine 2s ease infinite;
+  animation: shine 1.8s ease infinite;
 }
 @keyframes shine {
   0% {
     background-position: 100% center;
   }
   100% {
-    background-position: 0% center;
+    background-position: -100% center;
   }
 }
 </style>

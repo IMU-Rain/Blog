@@ -39,168 +39,151 @@ const scrollStore = useScrollsStore();
 <style scoped lang="less">
 @import "../style/theme.less";
 .container {
-  margin-bottom: 40px;
-  width: 100%;
-  padding: 30px 10%;
+  position: relative;
+  margin: 16px auto 28px;
+  width: min(1280px, 94vw);
+  padding: 14px 22px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: @card-background-color;
-  transition: all 0.8s ease;
+  background: color-mix(in srgb, var(--surface-color) 92%, transparent);
+  border: 1px solid var(--line-color);
+  border-radius: 16px;
+  box-shadow: 0 8px 18px var(--shadow-color);
+  backdrop-filter: blur(8px);
+  transition:
+    box-shadow 0.22s ease,
+    border-color 0.22s ease,
+    transform 0.22s ease,
+    background-color 0.22s ease;
   .title {
-    font-weight: 700;
-    font-size: 30px;
+    font-weight: 800;
+    font-size: 28px;
+    letter-spacing: 0.06em;
     cursor: pointer;
+    a {
+      color: var(--text-color);
+      transition: color 0.2s ease;
+    }
+    a:hover {
+      color: var(--primary-color);
+    }
   }
   nav > ul {
     display: flex;
-    gap: 40px;
-    font-size: 24px;
+    gap: 8px;
     align-items: center;
     .nav-item {
-      overflow: hidden;
-      cursor: pointer;
-      letter-spacing: 3px;
-      position: relative;
       .router-link {
-        transition: all 0.3s ease;
+        position: relative;
+        display: block;
+        padding: 10px 16px;
+        border-radius: 12px;
+        font-size: 17px;
+        font-weight: 600;
+        color: var(--text-muted);
+        letter-spacing: 0.08em;
+        transition:
+          color 0.2s ease,
+          background-color 0.2s ease,
+          transform 0.2s ease;
         -webkit-tap-highlight-color: transparent;
         background-color: transparent;
-        outline: none;
         &::after {
           content: "";
-          width: 100%;
           position: absolute;
-          height: 3px;
-          background-color: @text-color;
-          left: 0;
-          bottom: 0;
-          transform: scale(0);
-          transition: all 0.3s ease;
+          left: 12px;
+          right: 12px;
+          bottom: 6px;
+          height: 2px;
+          border-radius: 99px;
+          background: var(--primary-color);
+          transform: scaleX(0);
+          transform-origin: center;
+          transition: transform 0.2s ease;
+        }
+        &:hover {
+          color: var(--text-color);
+          background: color-mix(in srgb, var(--panel-color) 78%, transparent);
+        }
+        &.active {
+          color: var(--text-color);
+          background: color-mix(in srgb, var(--panel-color) 76%, transparent);
         }
         &.active::after {
-          opacity: 0.8;
-          transform: scale(1);
+          transform: scaleX(1);
         }
       }
     }
   }
   &.sticky {
     position: sticky;
-    top: 0;
+    top: 12px;
     z-index: 1000;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    border-color: color-mix(in srgb, var(--primary-color) 32%, var(--line-color));
+    box-shadow: 0 12px 28px color-mix(in srgb, var(--shadow-color) 88%, transparent);
+  }
+}
+@media (max-width: 900px) {
+  .container {
+    width: min(1280px, 96vw);
+    padding: 12px 16px;
+    .title {
+      font-size: 22px;
+    }
+    nav > ul {
+      .nav-item {
+        .router-link {
+          font-size: 15px;
+          padding: 8px 12px;
+          letter-spacing: 0.05em;
+        }
+      }
+    }
   }
 }
 @media (max-width: 768px) {
   .container {
-    backdrop-filter: blur(3px);
-    padding: 2% 5%;
-    justify-content: center;
+    margin: 0;
     position: fixed;
-    top: 99%;
-    width: 80%;
-    transform: translateY(-100%);
-    left: 10%;
+    left: 50%;
+    bottom: 12px;
+    top: auto;
+    transform: translateX(-50%);
+    width: min(540px, 92vw);
+    padding: 10px 12px;
+    border-radius: 999px;
+    justify-content: center;
     z-index: 1000;
-    border-radius: 40px;
-    margin-bottom: 0;
-    opacity: 0.85;
-    overflow: visible;
-    height: fit-content;
     nav {
-      height: fit-content;
       width: 100%;
-      ul {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: fit-content;
-        gap: 15%;
-        .nav-item {
-          overflow: visible;
-          .router-link {
-            padding: 15px 0px;
-            width: 100%;
-            display: block;
-            user-select: none;
-            filter: blur(1px);
-            &:active {
-              background-color: transparent;
-            }
-            &::after {
-              width: 180%;
-              bottom: 2.5%;
-              left: -45%;
-              height: 95%;
-              border-radius: 35px;
-              background-color: transparent;
-            }
-            &.active {
-              animation: scale 0.4s;
-              transform: scale(1.1);
-              filter: none;
-            }
-            &.active::after {
-              opacity: 0.8;
-              transform: scale(1.1);
-              animation: scale 0.4s;
-            }
+    }
+    nav > ul {
+      gap: 6px;
+      justify-content: space-between;
+      .nav-item {
+        flex: 1;
+        .router-link {
+          text-align: center;
+          font-size: 14px;
+          letter-spacing: 0.04em;
+          padding: 10px 6px;
+          &::after {
+            left: 16px;
+            right: 16px;
+            bottom: 4px;
           }
         }
       }
     }
     &.sticky {
       position: fixed;
-      top: 99%;
+      top: auto;
+      box-shadow: 0 12px 26px color-mix(in srgb, var(--shadow-color) 90%, transparent);
     }
   }
   .title {
     display: none;
-  }
-  @keyframes scale {
-    0% {
-      transform: scale(0.9);
-    }
-    25% {
-      transform: scale(1.2);
-    }
-    50% {
-      transform: scale(1);
-    }
-    100% {
-      transform: scale(1.1);
-    }
-  }
-}
-@media (prefers-color-scheme: dark) {
-  @media (max-width: 768px) {
-    .container {
-      nav > ul {
-        .nav-item {
-          .router-link {
-            &::after {
-              background-color: transparent;
-              opacity: 0.8;
-            }
-          }
-        }
-      }
-    }
-  }
-  .container {
-    background-color: @dark-card-background-color;
-    nav > ul {
-      .nav-item {
-        color: @dark-primary-color;
-        .router-link {
-          &::after {
-            background-color: @dark-text-color;
-            opacity: 0.8;
-          }
-        }
-      }
-    }
   }
 }
 </style>

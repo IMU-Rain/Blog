@@ -24,79 +24,115 @@ defineProps<{ articleData: ArticleRaw }>();
 <style scoped lang="less">
 @import "../style/theme.less";
 .article-container {
-  background-color: @card-background-color;
+  background: var(--surface-color);
+  border: 1px solid var(--line-color);
+  border-radius: 16px;
+  box-shadow: 0 8px 18px var(--shadow-color);
   overflow: hidden;
   display: flex;
   user-select: none;
   max-height: fit-content;
+  transition:
+    transform 0.24s ease,
+    box-shadow 0.24s ease,
+    border-color 0.24s ease;
+
   .cover {
-    transition: 0.2s ease transform;
-    background-color: transparent;
-    width: 60%;
-    max-height: 300px;
+    width: 48%;
+    min-height: 210px;
+    max-height: 320px;
     object-fit: cover;
-    display: inline-block;
+    flex-shrink: 0;
+    transition: transform 0.28s ease;
   }
   .meta {
-    height: 100%;
-    padding: 14px;
-    padding-left: 30px;
+    min-width: 0;
+    padding: 20px 24px;
     display: flex;
     flex-direction: column;
-    gap: 30px;
+    gap: 14px;
+
     .title {
-      font-size: 20px;
-      font-weight: 700;
-      position: relative;
-      color: @primary-color;
       width: fit-content;
       display: inline-block;
+      font-size: 22px;
+      font-weight: 700;
+      position: relative;
+      color: var(--text-color);
       &::after {
         content: "";
         width: 100%;
         position: absolute;
-        height: 3px;
-        background-color: @accent-color;
+        height: 2px;
+        background-color: var(--primary-color);
         left: 0;
-        bottom: -5px;
-        transform: scale(0);
-        transition: all 0.3s ease;
+        bottom: -4px;
+        transform: scaleX(0);
         transform-origin: left center;
+        transition: transform 0.2s ease;
       }
       &:hover::after {
-        transform: scale(1);
+        transform: scaleX(1);
       }
       &:hover {
-        color: @accent-color;
+        color: var(--primary-color);
       }
+    }
+
+    .excerpt {
+      margin: 0;
+      color: var(--text-muted);
+      line-height: 1.75;
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
     }
 
     .tags {
       display: flex;
-      gap: 15px;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: auto;
 
       .tag {
-        background-color: @accent-color;
-        border-radius: 5px;
-        padding: 3px 5px;
-        color: @card-background-color;
+        border: 1px solid color-mix(in srgb, var(--primary-color) 28%, var(--line-color));
+        background: color-mix(in srgb, var(--primary-weak) 76%, transparent);
+        border-radius: 999px;
+        padding: 2px 10px;
+        color: var(--primary-color);
+        font-size: 13px;
+        font-weight: 600;
         cursor: pointer;
       }
-      .create-time {
-        font-weight: 300;
-        font-size: 16px;
-        color: #999;
-        cursor: default;
-      }
+    }
+
+    .create-time {
+      margin-top: 4px;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-muted);
+      cursor: default;
     }
   }
-  transition: all 0.3s ease;
+
   &:hover {
-    transform: scale(1.02);
+    transform: translateY(-3px);
+    border-color: color-mix(in srgb, var(--primary-color) 35%, var(--line-color));
+    box-shadow: 0 14px 28px color-mix(in srgb, var(--shadow-color) 90%, transparent);
     .cover {
-      transform: scale((1.02));
+      transform: scale(1.03);
     }
-    box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+  }
+}
+@media (max-width: 960px) {
+  .article-container {
+    .meta {
+      padding: 16px 18px;
+      .title {
+        font-size: 20px;
+      }
+    }
   }
 }
 @media (max-width: 768px) {
@@ -104,33 +140,13 @@ defineProps<{ articleData: ArticleRaw }>();
     flex-direction: column;
     .cover {
       width: 100%;
+      min-height: 180px;
+      max-height: 250px;
     }
     .meta {
-      gap: 5px;
+      gap: 10px;
       .excerpt {
-        display: none;
-      }
-    }
-  }
-}
-@media (prefers-color-scheme: dark) {
-  .article-container {
-    background-color: @dark-card-background-color;
-    &:hover {
-      box-shadow: 0 0 15px 2px rgba(255, 255, 255, 0.3);
-    }
-    .meta {
-      .title {
-        color: @dark-primary-color;
-        &:hover {
-          color: @dark-accent-color;
-        }
-        &::after {
-          background-color: @dark-primary-color;
-        }
-        &:hover::after {
-          background-color: @dark-accent-color;
-        }
+        -webkit-line-clamp: 2;
       }
     }
   }

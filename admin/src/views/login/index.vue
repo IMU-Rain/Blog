@@ -3,15 +3,35 @@ import MaxInput from "@/components/MaxInput.vue";
 import MaxButton from "@/components/MaxButton.vue";
 import { ref } from "vue";
 import { login } from "@/api/account";
-import { useRouter } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
+import {
+  getErrorMessage,
+  showErrorMessage,
+  showSuccessMessage,
+} from "@/utils/message";
+
 const router = useRouter();
+const route = useRoute();
 const loginData = ref({ username: "", password: "" });
-const handleLogin = () => {
-  login(loginData.value).then((res) => {
+
+const handleLogin = async () => {
+  if (!loginData.value.username.trim() || !loginData.value.password) {
+    showErrorMessage("请输入用户名和密码");
+    return;
+  }
+  try {
+    const res = await login(loginData.value);
     if (res.code === 200) {
-      router.push("/Dashboard");
+      const redirectPath =
+        typeof route.query.redirect === "string"
+          ? route.query.redirect
+          : "/Dashboard";
+      router.replace(redirectPath);
+      showSuccessMessage("登录成功", "mdi:login");
     }
-  });
+  } catch (error) {
+    showErrorMessage(getErrorMessage(error, "登录失败，请检查账号或密码"));
+  }
 };
 </script>
 

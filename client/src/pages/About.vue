@@ -36,41 +36,61 @@ onMounted(() => {
 .about-container {
   overflow: visible;
   display: grid;
-  grid-template-columns: 11fr 4fr;
-  gap: 30px;
+  grid-template-columns: minmax(0, 11fr) minmax(270px, 4fr);
+  gap: 24px;
+  align-items: start;
   .about {
     width: 100%;
-    padding: 20px;
-    background-color: @card-background-color;
-    color: @text-color;
-    transition: height 100s ease;
+    padding: 24px;
+    background: var(--surface-color);
+    border: 1px solid var(--line-color);
+    border-radius: 16px;
+    box-shadow: 0 10px 22px var(--shadow-color);
+    color: var(--text-color);
     .about-article {
-      color: @accent-color;
+      color: var(--text-color);
+      line-height: 1.85;
+
       h1 {
-        border-bottom: 2px solid @accent-color;
+        border-bottom: 1px solid var(--line-color);
         display: block;
         width: fit-content;
-        margin-bottom: 10px;
+        margin: 0 0 14px;
+        padding-bottom: 8px;
+      }
+      h2,
+      h3 {
+        margin: 18px 0 12px;
+      }
+      p,
+      li {
+        color: var(--text-muted);
+      }
+      a {
+        color: var(--primary-color);
+      }
+      blockquote {
+        margin: 16px 0;
+        padding: 10px 14px;
+        border-left: 4px solid var(--primary-color);
+        border-radius: 10px;
+        background: color-mix(in srgb, var(--panel-color) 72%, transparent);
+      }
+      pre {
+        padding: 12px 14px;
+        border-radius: 12px;
+        border: 1px solid var(--line-color);
+        background: color-mix(in srgb, var(--panel-color) 66%, transparent);
+        overflow-x: auto;
       }
     }
   }
 }
-@media (max-width: 768px) {
+@media (max-width: 960px) {
   .about-container {
     grid-template-columns: 1fr;
-    min-width: 90vw;
-  }
-}
-@media (prefers-color-scheme: dark) {
-  .about-container {
     .about {
-      background-color: @dark-card-background-color;
-      .about-article {
-        color: @dark-accent-color;
-        h1 {
-          border-bottom: 2px solid @dark-accent-color;
-        }
-      }
+      padding: 18px;
     }
   }
 }

@@ -1,5 +1,12 @@
 <script lang="ts" setup>
-import { computed, onMounted, ref } from "vue";
+import {
+  computed,
+  nextTick,
+  onBeforeUnmount,
+  onErrorCaptured,
+  onMounted,
+  ref,
+} from "vue";
 import { useRouter } from "vue-router";
 import { MdEditor, MdPreview } from "md-editor-v3";
 import "md-editor-v3/lib/style.css";
@@ -16,6 +23,8 @@ interface AboutRecord {
 const router = useRouter();
 const isLoading = ref(false);
 const isSaving = ref(false);
+const editorReady = ref(false);
+const editorInitFailed = ref(false);
 const aboutId = ref("");
 const markdown = ref("");
 const updatedAt = ref("");
@@ -114,6 +123,31 @@ const saveAbout = async () => {
 // 页面挂载时自动拉取数据
 onMounted(() => {
   loadAbout();
+  nextTick(() => {
+    requestAnimationFrame(() => {
+      editorReady.value = true;
+    });
+  });
+});
+
+onBeforeUnmount(() => {
+  editorReady.value = false;
+});
+
+onErrorCaptured((err) => {
+  const message = err instanceof Error ? err.message : String(err || "");
+  if (
+    message.includes("Failed to execute 'observe' on 'MutationObserver'")
+  ) {
+    editorInitFailed.value = true;
+    MaxMessage({
+      message: "编辑器初始化异常，请刷新后重试",
+      icon: "solar:danger-triangle-outline",
+      color: "#cf4d63",
+    });
+    return false;
+  }
+  return true;
 });
 </script>
 
@@ -157,10 +191,19 @@ onMounted(() => {
           <h3>Markdown 编辑区</h3>
           <span>ID: {{ aboutId || "未创建" }}</span>
         </div>
+        <section v-if="editorInitFailed" class="editor-fallback">
+          编辑器初始化失败，请刷新页面后重试。
+        </section>
+        <section v-else-if="!editorReady" class="editor-fallback">
+          编辑器初始化中...
+        </section>
         <MdEditor
+          v-else
           v-model="markdown"
           class="md-editor-panel"
           :preview="false"
+          :noMermaid="true"
+          :noEcharts="true"
           language="zh-CN"
         />
       </article>
@@ -170,8 +213,16 @@ onMounted(() => {
           <h3>实时预览</h3>
           <span>展示效果</span>
         </div>
-        <div class="preview-body">
-          <MdPreview :editorId="editorId" :modelValue="markdown" />
+        <section v-if="editorInitFailed || !editorReady" class="editor-fallback">
+          预览初始化中...
+        </section>
+        <div v-else class="preview-body">
+          <MdPreview
+            :editorId="editorId"
+            :modelValue="markdown"
+            :noMermaid="true"
+            :noEcharts="true"
+          />
         </div>
       </article>
     </section>
@@ -302,6 +353,15 @@ onMounted(() => {
     color-mix(in srgb, var(--surface-color) 98%, transparent),
     color-mix(in srgb, var(--panel-color) 62%, transparent)
   );
+}
+
+.editor-fallback {
+  min-height: 560px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  background: color-mix(in srgb, var(--panel-color) 60%, transparent);
 }
 
 :deep(.md-editor) {

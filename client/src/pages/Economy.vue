@@ -82,28 +82,37 @@ onMounted(() => {
 <style scoped lang="less">
 @import "../style/theme.less";
 .container {
-  gap: 30px;
+  gap: 24px;
   display: grid;
-  grid-template-columns: 11fr 4fr;
-  text-align: center;
+  grid-template-columns: minmax(0, 11fr) minmax(270px, 4fr);
+  align-items: start;
   .duxiuindex {
-    padding: 20px;
-    background-color: @card-background-color;
-  }
-}
-@media (max-width: 768px) {
-  .container {
-    grid-template-columns: 1fr;
-    padding: 2% 3%;
-    .chart {
-      height: 500px;
+    padding: 22px;
+    background: var(--surface-color);
+    border: 1px solid var(--line-color);
+    border-radius: 16px;
+    box-shadow: 0 10px 22px var(--shadow-color);
+    text-align: left;
+    .title {
+      margin: 0 0 14px;
+      color: var(--text-color);
+    }
+    .introduction {
+      margin: 0 0 20px;
+      color: var(--text-muted);
+      line-height: 1.9;
+      text-align: left;
     }
   }
 }
-@media (prefers-color-scheme: dark) {
+@media (max-width: 960px) {
   .container {
+    grid-template-columns: 1fr;
     .duxiuindex {
-      background-color: @dark-card-background-color;
+      padding: 16px;
+      .title {
+        font-size: 24px;
+      }
     }
   }
 }

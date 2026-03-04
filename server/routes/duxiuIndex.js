@@ -1,6 +1,8 @@
 const router = require("express").Router();
 const duxiuIndexController = require("../controllers/duxiuIndexController");
-router.post("/", duxiuIndexController.createDuxiuIndex);
+const authMiddleware = require("../middlewares/authMiddleware");
+const adminOnly = require("../middlewares/adminOnlyMiddleware");
+router.post("/", authMiddleware, adminOnly, duxiuIndexController.createDuxiuIndex);
 router.get("/", duxiuIndexController.getDuxiuIndex);
-router.put("/", duxiuIndexController.updateDuxiuIndex);
+router.put("/", authMiddleware, adminOnly, duxiuIndexController.updateDuxiuIndex);
 module.exports = router;

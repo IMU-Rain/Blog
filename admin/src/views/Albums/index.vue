@@ -2,7 +2,6 @@
 import { computed, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 import MaxButton from "@/components/MaxButton.vue";
-import MaxMessage from "@/components/MaxMessage";
 import PhotoCard, { type PhotoCardItem } from "./components/PhotoCard.vue";
 import { uploadFile } from "@/api/File";
 import {
@@ -12,6 +11,11 @@ import {
   getPhotos,
   updatePhotoMeta,
 } from "@/api/albums";
+import {
+  getErrorMessage,
+  showErrorMessage,
+  showSuccessMessage,
+} from "@/utils/message";
 
 type PhotoItem = PhotoCardItem;
 
@@ -84,6 +88,8 @@ const refreshPhotos = async () => {
     if (res.code === 200 && Array.isArray(res.data)) {
       photos.value = res.data as PhotoItem[];
     }
+  } catch (error) {
+    showErrorMessage(getErrorMessage(error, "图片列表加载失败"));
   } finally {
     isLoading.value = false;
   }
@@ -121,7 +127,13 @@ const handleFileChange = async (event: Event) => {
         album: albumName.value.trim() || "default",
       });
       await refreshPhotos();
+      showSuccessMessage(`成功上传 ${ids.length} 张图片`, "mdi:cloud-upload-outline");
     }
+    if (ids.length === 0) {
+      showErrorMessage("没有可用的上传结果，请重试");
+    }
+  } catch (error) {
+    showErrorMessage(getErrorMessage(error, "图片上传失败，请稍后重试"));
   } finally {
     isUploading.value = false;
     input.value = "";
@@ -149,8 +161,13 @@ const removePhoto = async (item: PhotoItem) => {
   if (!ok) {
     return;
   }
-  await deletePhotos([id]);
-  await refreshPhotos();
+  try {
+    await deletePhotos([id]);
+    await refreshPhotos();
+    showSuccessMessage("图片删除成功", "solar:trash-bin-minimalistic-outline");
+  } catch (error) {
+    showErrorMessage(getErrorMessage(error, "图片删除失败，请稍后重试"));
+  }
 };
 
 const getPhotoId = (item: PhotoItem) => String(item._id || item.id || "");
@@ -176,27 +193,14 @@ const handleCreateExpert = async (item: PhotoItem) => {
     const res = await createPhotoExpert(id);
     const expert = getExpertText(res.data);
     if (!expert) {
-      MaxMessage({
-        message: "未获取到描述内容",
-        icon: "solar:danger-triangle-outline",
-        color: "#cf4d63",
-      });
+      showErrorMessage("未获取到描述内容");
       return;
     }
     await updatePhotoMeta(id, { description: expert });
     item.description = expert;
-    MaxMessage({
-      message: "描述生成并保存成功",
-      icon: "mdi:check-circle-outline",
-      color: "#2f7ccf",
-    });
+    showSuccessMessage("描述生成并保存成功", "mdi:check-circle-outline");
   } catch (error) {
-    console.error(error);
-    MaxMessage({
-      message: "描述生成或保存失败，请稍后重试",
-      icon: "solar:danger-triangle-outline",
-      color: "#cf4d63",
-    });
+    showErrorMessage(getErrorMessage(error, "描述生成或保存失败，请稍后重试"));
   } finally {
     aiLoadingMap.value[id] = false;
   }

@@ -3,6 +3,7 @@ import {
   createWebHistory,
   type RouteRecordRaw,
 } from "vue-router";
+import { getLoginUser } from "@/api/account";
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -50,18 +51,30 @@ const routes: Array<RouteRecordRaw> = [
 ];
 const router = createRouter({
   routes,
-  history: createWebHistory(),
+  history: createWebHistory("/admin/"),
 });
-// 验证token是否过期拦截器
-router.beforeEach(async (to, _before, next) => {
-  const token = await cookieStore.get("token");
-
-  if (to.path !== "/login") {
-    if (!token) {
-      return next("/login");
-    }
-    return next();
+let authCheckPromise: Promise<unknown> | null = null;
+const ensureAuthed = () => {
+  if (!authCheckPromise) {
+    authCheckPromise = getLoginUser().finally(() => {
+      authCheckPromise = null;
+    });
   }
-  next();
+  return authCheckPromise;
+};
+// 每次路由切换都向服务端核验 cookie，避免前端缓存登录态
+router.beforeEach(async (to) => {
+  if (to.path === "/login") {
+    return true;
+  }
+  try {
+    await ensureAuthed();
+    return true;
+  } catch (_err) {
+    return {
+      path: "/login",
+      query: { redirect: to.fullPath },
+    };
+  }
 });
 export default router;
