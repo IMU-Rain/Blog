@@ -11,6 +11,10 @@ export function getArticleDetail(id: string) {
 export function createArticle(data: any) {
   return useReuest("post", "/articles", data);
 }
+/**上传文章封面 */
+export function uploadArticleCover(file: FormData) {
+  return useReuest("post", "/articles/cover", file);
+}
 /**Ai生成摘要 */
 export async function createExpert(data: string) {
   return useReuest("post", "/articles/expert", { content: data });

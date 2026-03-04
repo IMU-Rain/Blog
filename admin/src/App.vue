@@ -29,7 +29,7 @@ onMounted(() => {
 }
 
 .app-view {
-  width: 100%;
+  max-width: 100%;
 }
 
 .app-switch-enter-active,

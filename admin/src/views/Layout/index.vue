@@ -26,7 +26,7 @@ import MaxBar from "@/components/MaxBar.vue";
 }
 
 .route-view {
-  width: 100%;
+  max-width: 100%;
 }
 
 .maxbar {

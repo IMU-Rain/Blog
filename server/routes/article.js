@@ -2,6 +2,7 @@ const router = require("express").Router();
 const articleController = require("../controllers/articleController");
 const adminOnly = require("../middlewares/adminOnlyMiddleware");
 const authMiddleware = require("../middlewares/authMiddleware");
+const { coverImage } = require("../middlewares/uploads");
 // 创建文章
 router.post(
   "/",
@@ -15,6 +16,14 @@ router.post(
   authMiddleware,
   adminOnly,
   articleController.createExpert,
+);
+// 上传文章封面
+router.post(
+  "/cover",
+  authMiddleware,
+  adminOnly,
+  coverImage,
+  articleController.uploadArticleCover,
 );
 // 获取所有文章
 router.get("/", articleController.getArticleInfo);

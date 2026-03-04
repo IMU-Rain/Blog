@@ -20,6 +20,14 @@ const {
   SERVER_ERROR,
 } = require("../utils/errorTypes");
 const { mkThumbnail } = require("../utils/image");
+
+function normalizeAssetPath(rawPath = "") {
+  return String(rawPath)
+    .replace(/\\/g, "/")
+    .replace(/^(\.\.\/)+/, "")
+    .replace(/^\.\//, "")
+    .replace(/^\/+/, "");
+}
 // 创建文章
 const createArticle = async (req, res) => {
   try {
@@ -130,6 +138,45 @@ const deleteArticle = async (req, res) => {
     return errorResponse(res, RESOURCE_DELETE_FAIL, err.message, 500);
   }
 };
+// 上传文章封面
+const uploadArticleCover = async (req, res) => {
+  const file = req.file;
+  if (!file) {
+    return errorResponse(res, PARAM_MISSING, "未接收到封面文件", 400);
+  }
+  const absInputPath = file.path || path.join(file.destination, file.filename);
+  try {
+    const thumbnailResult = await mkThumbnail(
+      absInputPath,
+      UPLOAD_DIR_ABS_COVER,
+      file.filename,
+    );
+    if (!thumbnailResult || !thumbnailResult.thumbnailName) {
+      throw new Error("封面缩略图生成失败");
+    }
+    const { thumbnailName } = thumbnailResult;
+    await fsPromise.unlink(absInputPath);
+    const coverPath = normalizeAssetPath(
+      `${UPLOAD_DIR_NAME_COVER}/${thumbnailName}`,
+    );
+    const serverBase = process.env.SERVER_URL || `${req.protocol}://${req.get("host")}`;
+    successResponse(
+      res,
+      {
+        coverPath,
+        path: coverPath,
+        url: `${serverBase}/${coverPath}`,
+        fileName: thumbnailName,
+        originalName: file.originalname,
+      },
+      undefined,
+      "封面上传成功",
+    );
+  } catch (err) {
+    await fsPromise.unlink(absInputPath).catch(() => {});
+    errorResponse(res, SERVER_ERROR, err.message, 500);
+  }
+};
 // 获取文章AI摘要
 async function createExpert(req, res) {
   try {
@@ -162,6 +209,7 @@ async function createExpert(req, res) {
 }
 module.exports = {
   createExpert,
+  uploadArticleCover,
   createArticle,
   getArticleInfo,
   getArticleById,

@@ -3,11 +3,11 @@ import { MdEditor } from "md-editor-v3";
 import "md-editor-v3/lib/style.css";
 import MaxButton from "@/components/MaxButton.vue";
 import MaxInput from "@/components/MaxInput.vue";
-import http from "@/api/http";
 import {
   createArticle,
   createExpert,
   getArticleDetail,
+  uploadArticleCover,
   updateArticle,
 } from "@/api/Articles";
 import { useRoute, useRouter } from "vue-router";
@@ -47,6 +47,7 @@ interface ArticleRow {
 }
 
 interface UploadFileRecord {
+  coverPath?: string;
   fileName?: string;
   path?: string;
   url?: string;
@@ -387,13 +388,11 @@ const generateExcerptByAI = async () => {
   }
 };
 
-const uploadSingleImage = async (file: File) => {
+const uploadSingleCover = async (file: File) => {
   const formData = new FormData();
-  formData.append("image", file);
-  const res = await http.post("/file", formData, {
-    headers: { "Content-Type": "multipart/form-data" },
-  });
-  return (res.data?.data || {}) as UploadFileRecord;
+  formData.append("cover", file);
+  const res = await uploadArticleCover(formData);
+  return (res.data || {}) as UploadFileRecord;
 };
 
 const onSelectCover = async (event: Event) => {
@@ -402,13 +401,9 @@ const onSelectCover = async (event: Event) => {
   if (!file) return;
 
   try {
-    const uploaded = await uploadSingleImage(file);
-    const fromFileName = uploaded.fileName
-      ? `/uploads/origin/${uploaded.fileName}`
-      : "";
-
+    const uploaded = await uploadSingleCover(file);
     articleData.value.cover =
-      fromFileName ||
+      normalizePath(uploaded.coverPath) ||
       normalizePath(uploaded.path) ||
       normalizePath(uploaded.url);
 
