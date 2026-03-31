@@ -59,7 +59,7 @@ const getAbout = async (req, res) => {
     }
     successResponse(res, about, "文章获取成功");
   } catch (err) {
-    errorResponse(res, DB_ERROR, null, err.message, 500);
+    errorResponse(res, DB_ERROR, err.message, 500);
   }
 };
 module.exports = {

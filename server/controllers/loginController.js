@@ -36,7 +36,7 @@ const loginController = async (req, res) => {
     const token = jwt.sign(
       { id: user._id, username: user.username, role: user.role },
       SECRET_KEY,
-      { expiresIn: "30m" }
+      { expiresIn: "60m" }
     );
     res.cookie("token", token, {
       maxAge: 30 * 60 * 1000,

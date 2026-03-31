@@ -2,7 +2,6 @@
 import { ref, onMounted, nextTick } from "vue";
 import { useRoute, onBeforeRouteUpdate } from "vue-router";
 
-// 1. 显式定义TS类型，初始化值可设为空
 const leftY = ref<string>("0px");
 // 获取当前路由实例
 const route = useRoute();
@@ -26,14 +25,14 @@ const setLeftByRoute = () => {
   if (index) calcIndicatorLeft(index);
 };
 
-// 2. 页面初始化：根据当前路由设置初始位置
+// 页面初始化：根据当前路由设置初始位置
 onMounted(() => {
   nextTick(() => {
     setLeftByRoute();
   });
 });
 
-// 3. 监听路由切换：同步更新位置
+// 监听路由切换：同步更新位置
 onBeforeRouteUpdate((to) => {
   // 路由切换后，更新当前路由并重新计算位置
   const index = routeToIndex.get(to.path);

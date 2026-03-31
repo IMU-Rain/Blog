@@ -158,7 +158,7 @@ async function createExpert(req, res) {
         content: [
           {
             type: "text",
-            text: `这是一个摄影照片，请你生成一段20个中文字符的点评`,
+            text: `这是一个摄影照片，请你生成一段40个中文字符的介绍`,
           },
           {
             type: "image_url",

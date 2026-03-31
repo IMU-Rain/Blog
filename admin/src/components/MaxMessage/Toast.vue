@@ -8,7 +8,7 @@ interface ToastProps {
   color?: string;
   duration?: number;
 }
-
+// 默认基础配置
 const props = withDefaults(defineProps<ToastProps>(), {
   icon: "mdi:check-circle-outline",
   color: "#2f7ccf",
@@ -86,7 +86,7 @@ onMounted(() => {
   text-overflow: ellipsis;
   opacity: 0;
   transform: translateX(-8px);
-  animation: text-reveal 0.85s linear 0.3s forwards;
+  animation: text-reveal 0.85s ease 0.3s forwards;
   line-height: 1.45;
   word-break: break-word;
   font-size: 16px;
@@ -100,7 +100,7 @@ onMounted(() => {
   }
   55% {
     opacity: 1;
-    transform: translateY(3px);
+    // transform: translateY(3px);
   }
   100% {
     opacity: 1;
