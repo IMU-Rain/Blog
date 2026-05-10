@@ -3,7 +3,7 @@ import { colorToRgba } from "@/utils/color";
 import { Icon } from "@iconify/vue";
 import { computed } from "vue";
 const props = withDefaults(
-  defineProps<{ height: number; color: string; icon: string }>(),
+  defineProps<{ height: number|string; color: string; icon: string }>(),
   {
     height: 18,
     color: "text",
@@ -11,7 +11,7 @@ const props = withDefaults(
   },
 );
 const fontSize = props.height + "px";
-const gap = props.height / 2.5 + "px";
+const gap = Number(props.height) / 2.5 + "px";
 const backgroundColor = computed(() => colorToRgba(props.color, 0.1));
 </script>
 

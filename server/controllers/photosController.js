@@ -141,14 +141,21 @@ async function createExpert(req, res) {
   const apiUrl = "https://open.bigmodel.cn/api/paas/v4/chat/completions";
   // 解析URL为hostname/path，方便构建https请求参数
   const parsedUrl = new URL(apiUrl);
-  const image_url = `${process.env.BASEURL}/${path}`;
-
+  const photo = await photoSchema.findById(photoId);
+  if (!photo)
+    return errorResponse(
+      res,
+      RESOURCE_NOT_FIND,
+      `未找到id为${photoId}的照片，请检查`,
+      302,
+    );
+  const image_url = photo.url;
+  console.log(image_url);
   // 构建请求头
   const headers = {
     "Content-Type": "application/json",
     Authorization: `Bearer ${process.env.ZHIPU_API_KEY}`,
   };
-
   // 构建请求体（与原代码参数完全一致）
   const requestBody = JSON.stringify({
     model: "glm-4.1v-thinking-flashx", // 模型名称
@@ -163,7 +170,7 @@ async function createExpert(req, res) {
           {
             type: "image_url",
             image_url: {
-              url: "https://picui.ogmua.cn/s1/2026/03/02/69a5332f6f151.webp",
+              url: image_url,
             },
           }, // 修复原代码的参数格式错误
         ],
@@ -232,7 +239,7 @@ async function createExpert(req, res) {
   } catch (error) {
     // 错误处理：打印详细信息并抛出
     console.error("调用智谱AI API失败：", error.message);
-    errorResponse(res, SERVER_ERROR, error.message, "500");
+    errorResponse(res, SERVER_ERROR, error.message, 500);
   }
 }
 // 图片删除
