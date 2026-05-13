@@ -207,7 +207,132 @@ async function createExpert(req, res) {
     errorResponse(res, SERVER_ERROR, err.message, "500");
   }
 }
+
+// 获取文章AI标题
+async function createTitle(req, res) {
+  try {
+    const content = req.body?.content;
+    if (!content || typeof content !== "string") {
+      return errorResponse(res, PARAM_MISSING, "缺少正文 content", 400);
+    }
+
+    const openai = new OpenAI({
+      baseURL: "https://api.deepseek.com",
+      apiKey: process.env.DEEPSEEK_API_KEY,
+    });
+    const completion = await openai.chat.completions.create({
+      messages: [
+        {
+          role: "system",
+          content:
+            "你是一个中文博客标题助手。请根据正文生成1个简洁、准确、有吸引力的中文文章标题，只返回标题本身，不要编号、引号或解释，长度不超过30个中文字符。",
+        },
+        {
+          role: "user",
+          content,
+        },
+      ],
+      model: "deepseek-chat",
+    });
+    const title = String(completion.choices[0].message.content || "")
+      .replace(/^["“”'']|["“”'']$/g, "")
+      .trim()
+      .slice(0, 60);
+    successResponse(res, title, undefined, "标题获取成功");
+  } catch (err) {
+    errorResponse(res, SERVER_ERROR, err.message, 500);
+  }
+}
+
+// 获取文章AI标签
+async function createTags(req, res) {
+  try {
+    const content = req.body?.content;
+    if (!content || typeof content !== "string") {
+      return errorResponse(res, PARAM_MISSING, "缺少正文 content", 400);
+    }
+
+    const openai = new OpenAI({
+      baseURL: "https://api.deepseek.com",
+      apiKey: process.env.DEEPSEEK_API_KEY,
+    });
+    const completion = await openai.chat.completions.create({
+      messages: [
+        {
+          role: "system",
+          content:
+            "你是一个中文博客标签提取助手。请根据正文提取3到6个标签，只返回JSON字符串数组，例如[\"Vue\",\"Node.js\",\"毕业设计\"]。不要返回解释、Markdown或额外文本。",
+        },
+        {
+          role: "user",
+          content,
+        },
+      ],
+      model: "deepseek-chat",
+    });
+    const rawTags = String(completion.choices[0].message.content || "").trim();
+    let tags = [];
+    try {
+      const parsed = JSON.parse(rawTags);
+      if (Array.isArray(parsed)) {
+        tags = parsed;
+      }
+    } catch (_err) {
+      tags = rawTags
+        .replace(/```json|```/gi, "")
+        .split(/[,，、\n]/);
+    }
+    const normalizedTags = Array.from(
+      new Set(
+        tags
+          .map((tag) => String(tag).replace(/^["“”'']|["“”'']$/g, "").trim())
+          .filter(Boolean),
+      ),
+    ).slice(0, 6);
+    successResponse(res, normalizedTags, undefined, "标签获取成功");
+  } catch (err) {
+    errorResponse(res, SERVER_ERROR, err.message, 500);
+  }
+}
+
+// 获取文章AI目录
+async function createToc(req, res) {
+  try {
+    const content = req.body?.content;
+    if (!content || typeof content !== "string") {
+      return errorResponse(res, PARAM_MISSING, "缺少正文 content", 400);
+    }
+
+    const openai = new OpenAI({
+      baseURL: "https://api.deepseek.com",
+      apiKey: process.env.DEEPSEEK_API_KEY,
+    });
+    const completion = await openai.chat.completions.create({
+      messages: [
+        {
+          role: "system",
+          content:
+            "你是一个中文博客目录助手。请根据正文生成文章目录，只返回Markdown无序列表。最多保留三级结构，每行格式为“- 标题”，子级用两个空格缩进。目录标题要简洁，不要编号、解释、代码块或额外文本。",
+        },
+        {
+          role: "user",
+          content,
+        },
+      ],
+      model: "deepseek-chat",
+    });
+    const toc = String(completion.choices[0].message.content || "")
+      .replace(/```(?:markdown|md)?|```/gi, "")
+      .trim();
+    successResponse(res, toc, undefined, "目录获取成功");
+  } catch (err) {
+    errorResponse(res, SERVER_ERROR, err.message, 500);
+  }
+}
 module.exports = {
+  createToc,
+  createTags,
+  createTitle,
   createExpert,
   uploadArticleCover,
   createArticle,

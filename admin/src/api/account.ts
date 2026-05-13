@@ -10,3 +10,7 @@ export function login(data: loginData) {
 export function getLoginUser() {
   return useReuest("get", "/login");
 }
+
+export function logout() {
+  return useReuest("post", "/login/logout");
+}

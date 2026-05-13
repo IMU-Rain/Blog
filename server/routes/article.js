@@ -17,6 +17,27 @@ router.post(
   adminOnly,
   articleController.createExpert,
 );
+// AI生成标题
+router.post(
+  "/title",
+  authMiddleware,
+  adminOnly,
+  articleController.createTitle,
+);
+// AI提取标签
+router.post(
+  "/tags",
+  authMiddleware,
+  adminOnly,
+  articleController.createTags,
+);
+// AI生成目录
+router.post(
+  "/toc",
+  authMiddleware,
+  adminOnly,
+  articleController.createToc,
+);
 // 上传文章封面
 router.post(
   "/cover",

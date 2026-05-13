@@ -51,6 +51,8 @@ const articleImageRoutes = require("./routes/articleImage");
 const loginRoutes = require("./routes/login");
 const visitRoutes = require("./routes/visit");
 const uploadRoutes = require("./routes/uploader");
+const commentRoutes = require("./routes/comment");
+const userRoutes = require("./routes/user");
 const cookieParser = require("cookie-parser");
 app.use(cookieParser());
 app.use("/api/articles", articleRoutes);
@@ -62,6 +64,8 @@ app.use("/uploads", express.static(uploadPath));
 app.use("/api/login", loginRoutes);
 app.use("/api/visit", visitRoutes);
 app.use("/api/file", uploadRoutes);
+app.use("/api/comments", commentRoutes);
+app.use("/api/users", userRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

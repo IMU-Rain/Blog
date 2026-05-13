@@ -149,8 +149,7 @@ async function createExpert(req, res) {
       `未找到id为${photoId}的照片，请检查`,
       302,
     );
-  const image_url = photo.url;
-  console.log(image_url);
+  const image_url = process.env.SERVER_URL + photo.smallThumbUrl.slice(2);
   // 构建请求头
   const headers = {
     "Content-Type": "application/json",
@@ -172,7 +171,7 @@ async function createExpert(req, res) {
             image_url: {
               url: image_url,
             },
-          }, // 修复原代码的参数格式错误
+          },
         ],
       },
     ],
@@ -235,9 +234,11 @@ async function createExpert(req, res) {
     // 发送请求并获取响应
     const response = await requestPromise;
     const content = response.choices[0].message.content;
+
     successResponse(res, content, "摘要获取成功");
   } catch (error) {
     // 错误处理：打印详细信息并抛出
+
     console.error("调用智谱AI API失败：", error.message);
     errorResponse(res, SERVER_ERROR, error.message, 500);
   }
@@ -268,7 +269,7 @@ const photoDelete = async (req, res) => {
       } catch (err) {
         return errorResponse(res, RESOURCE_DELETE_FAIL, err.message, 404);
       }
-      await photoSchema.findOneAndDelete(id);
+      await photo.deleteOne()
       await fileSchema.findOneAndDelete(photo.fileId);
     }
     successResponse(res, "文件删除成功");

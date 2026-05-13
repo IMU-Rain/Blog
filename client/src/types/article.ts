@@ -13,6 +13,7 @@ interface ArticleDetail {
     cover: string;
     content: string;
     excerpt: string;
+    toc?: string;
     status: string;
     tags?: string[];
     views: string;

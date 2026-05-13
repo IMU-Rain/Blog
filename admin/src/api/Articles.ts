@@ -19,6 +19,18 @@ export function uploadArticleCover(file: FormData) {
 export async function createExpert(data: string) {
   return useReuest("post", "/articles/expert", { content: data });
 }
+/**Ai生成标题 */
+export async function createTitle(data: string) {
+  return useReuest("post", "/articles/title", { content: data });
+}
+/**Ai提取标签 */
+export async function createTags(data: string) {
+  return useReuest("post", "/articles/tags", { content: data });
+}
+/**Ai生成目录 */
+export async function createToc(data: string) {
+  return useReuest("post", "/articles/toc", { content: data });
+}
 /**更新文章 */
 export function updateArticle(id: string, data: any) {
   return useReuest("put", `/articles/${id}`, data);

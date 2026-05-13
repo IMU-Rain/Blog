@@ -1,6 +1,16 @@
 interface user {
   id: string;
   username: string;
+  nickname?: string;
+  avatar?: string;
   role: string;
+  status?: string;
+  createAt?: string;
 }
-export type { user };
+
+interface AuthResponse {
+  user: user;
+  token: string;
+}
+
+export type { AuthResponse, user };

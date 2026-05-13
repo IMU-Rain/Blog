@@ -1,16 +1,25 @@
-const baseURL = String(import.meta.env.VITE_BASEURL || "").replace(/\/$/, "");
-export const toAssetUrl = (value?: string) => {
-  if (!value) return "";
-  if (/^https?:\/\//i.test(value)) {
-    return value;
+const resolveServerOrigin = () => {
+  const baseURL = import.meta.env.VITE_BASEURL;
+  try {
+    if (!baseURL) {
+      return window.location.origin;
+    }
+    const base = new URL(baseURL);
+    return base.origin;
+  } catch {
+    return window.location.origin;
   }
-  const normalized = normalizePath(value);
-  if (normalized.startsWith("/")) {
-    return `${baseURL}${normalized}`;
-  }
-  return `${baseURL}/${normalized}`;
 };
-const normalizePath = (value?: string) => {
-  if (!value) return "";
-  return value.replace(/^\.\//, "/").replace(/^(\.\.\/)+/, "/");
+
+export const toAssetUrl = (rawUrl?: string) => {
+  if (!rawUrl) return "";
+  if (/^https?:\/\//i.test(rawUrl)) {
+    return rawUrl;
+  }
+  const normalizedPath = rawUrl
+    .replace(/\\/g, "/")
+    .replace(/^(\.\.\/)+/, "/")
+    .replace(/^\.?\//, "/");
+  const origin = resolveServerOrigin();
+  return `${origin}${normalizedPath.startsWith("/") ? normalizedPath : `/${normalizedPath}`}`;
 };

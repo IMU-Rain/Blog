@@ -6,6 +6,9 @@ import MaxInput from "@/components/MaxInput.vue";
 import {
   createArticle,
   createExpert,
+  createTags,
+  createTitle,
+  createToc,
   getArticleDetail,
   uploadArticleCover,
   updateArticle,
@@ -39,6 +42,7 @@ interface ArticleRow {
   title: string;
   cover: string;
   excerpt: string;
+  toc: string;
   status: ArticleStatus;
   tags: string[];
   createAt?: string;
@@ -78,6 +82,7 @@ const articleData = ref<ArticleRow>({
   title: "",
   cover: "",
   excerpt: "",
+  toc: "",
   status: "default",
   tags: [],
   containImg: [],
@@ -135,6 +140,9 @@ const contentWordCount = computed(
   () => articleData.value.content.trim().length,
 );
 const isGeneratingExcerpt = ref(false);
+const isGeneratingTitle = ref(false);
+const isGeneratingTags = ref(false);
+const isGeneratingToc = ref(false);
 
 const imgStyle = computed(() => ({
   transform: `translate3d(${pos.value.x}px, ${pos.value.y}px, 0) scale(${scale.value})`,
@@ -388,6 +396,77 @@ const generateExcerptByAI = async () => {
   }
 };
 
+const ensureContentForAI = () => {
+  const plain = stripMarkdown(articleData.value.content || "");
+  if (!plain) {
+    showErrorMessage("请先输入正文内容，再使用 AI 功能");
+    return false;
+  }
+  return true;
+};
+
+const generateTitleByAI = async () => {
+  if (isGeneratingTitle.value || !ensureContentForAI()) return;
+
+  isGeneratingTitle.value = true;
+  try {
+    const res = await createTitle(articleData.value.content);
+    const title = String(res.data || "").trim();
+    if (!title) {
+      showErrorMessage("未获取到标题内容");
+      return;
+    }
+    articleData.value.title = title;
+    showSuccessMessage("标题生成成功", "mdi:robot-outline");
+  } catch (error) {
+    showErrorMessage(getErrorMessage(error, "标题生成失败，请稍后重试"));
+  } finally {
+    isGeneratingTitle.value = false;
+  }
+};
+
+const generateTagsByAI = async () => {
+  if (isGeneratingTags.value || !ensureContentForAI()) return;
+
+  isGeneratingTags.value = true;
+  try {
+    const res = await createTags(articleData.value.content);
+    const tags = Array.isArray(res.data)
+      ? res.data.map((tag) => String(tag).trim()).filter(Boolean)
+      : [];
+    if (tags.length === 0) {
+      showErrorMessage("未提取到可用标签");
+      return;
+    }
+    articleData.value.tags = Array.from(new Set(tags));
+    showSuccessMessage("标签提取成功", "mdi:tag-outline");
+  } catch (error) {
+    showErrorMessage(getErrorMessage(error, "标签提取失败，请稍后重试"));
+  } finally {
+    isGeneratingTags.value = false;
+  }
+};
+
+const generateTocByAI = async () => {
+  if (isGeneratingToc.value || !ensureContentForAI()) return;
+
+  isGeneratingToc.value = true;
+  try {
+    const res = await createToc(articleData.value.content);
+    const toc = String(res.data || "").trim();
+    if (!toc) {
+      showErrorMessage("未获取到目录内容");
+      return;
+    }
+    articleData.value.toc = toc;
+    showSuccessMessage("目录生成成功", "mdi:format-list-bulleted");
+  } catch (error) {
+    showErrorMessage(getErrorMessage(error, "目录生成失败，请稍后重试"));
+  } finally {
+    isGeneratingToc.value = false;
+  }
+};
+
 const uploadSingleCover = async (file: File) => {
   const formData = new FormData();
   formData.append("cover", file);
@@ -436,6 +515,7 @@ const saveArticle = async () => {
     ...articleData.value,
     title: articleData.value.title.trim(),
     excerpt: articleData.value.excerpt.trim(),
+    toc: articleData.value.toc.trim(),
     tags: articleData.value.tags.map((tag) => tag.trim()).filter(Boolean),
   };
 
@@ -480,6 +560,7 @@ const initArticle = async () => {
       title: raw.title || "",
       cover: normalizePath(raw.cover),
       excerpt: raw.excerpt || "",
+      toc: raw.toc || "",
       status: (raw.status as ArticleStatus) || "default",
       tags: Array.isArray(raw.tags) ? raw.tags : [],
       createAt: raw.createAt,
@@ -611,7 +692,17 @@ onBeforeUnmount(() => {
 
       <aside class="meta card">
         <div class="field">
-          <label for="title">标题</label>
+          <div class="field-head">
+            <label for="title">标题</label>
+            <button
+              type="button"
+              class="ai-btn"
+              :disabled="isGeneratingTitle"
+              @click="generateTitleByAI"
+            >
+              {{ isGeneratingTitle ? "生成中..." : "AI生成标题" }}
+            </button>
+          </div>
           <MaxInput
             v-model="articleData.title"
             icon="mdi:format-title"
@@ -644,6 +735,27 @@ onBeforeUnmount(() => {
         </div>
 
         <div class="field">
+          <div class="field-head">
+            <label for="toc">目录</label>
+            <button
+              type="button"
+              class="ai-btn"
+              :disabled="isGeneratingToc"
+              @click="generateTocByAI"
+            >
+              {{ isGeneratingToc ? "生成中..." : "AI生成目录" }}
+            </button>
+          </div>
+          <textarea
+            id="toc"
+            v-model="articleData.toc"
+            class="toc-editor"
+            rows="6"
+            placeholder="- 第一部分&#10;  - 小节标题&#10;- 第二部分"
+          />
+        </div>
+
+        <div class="field">
           <label for="status">状态</label>
           <select id="status" v-model="articleData.status">
             <option
@@ -657,7 +769,17 @@ onBeforeUnmount(() => {
         </div>
 
         <div class="field">
-          <label for="tags">标签</label>
+          <div class="field-head">
+            <label for="tags">标签</label>
+            <button
+              type="button"
+              class="ai-btn"
+              :disabled="isGeneratingTags"
+              @click="generateTagsByAI"
+            >
+              {{ isGeneratingTags ? "提取中..." : "AI提取标签" }}
+            </button>
+          </div>
           <MaxInput
             v-model="tagsText"
             icon="mdi:tag-outline"
@@ -880,6 +1002,13 @@ onBeforeUnmount(() => {
 
         textarea {
           resize: vertical;
+        }
+
+        .toc-editor {
+          min-height: 136px;
+          line-height: 1.6;
+          font-family:
+            "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
         }
 
         :deep(.input-wrap) {

@@ -2,7 +2,7 @@
 import MaxInput from "@/components/MaxInput.vue";
 import MaxButton from "@/components/MaxButton.vue";
 import { ref } from "vue";
-import { login } from "@/api/account";
+import { login, logout } from "@/api/account";
 import { useRoute, useRouter } from "vue-router";
 import {
   getErrorMessage,
@@ -22,6 +22,11 @@ const handleLogin = async () => {
   try {
     const res = await login(loginData.value);
     if (res.code === 200) {
+      if (res.data?.user?.role !== "admin") {
+        await logout().catch(() => {});
+        showErrorMessage("只有管理员可以进入后台", "mdi:shield-alert-outline");
+        return;
+      }
       const redirectPath =
         typeof route.query.redirect === "string"
           ? route.query.redirect

@@ -8,7 +8,7 @@ const route = useRoute();
 
 // 封装：根据索引计算指示器left值
 const calcIndicatorLeft = (index: number) => {
-  leftY.value = `${25 * (index - 1) + 12.5}%`;
+  leftY.value = `${(100 / 6) * (index - 1) + 100 / 12}%`;
 };
 
 // 路由和索引的映射表
@@ -16,7 +16,9 @@ const routeToIndex = new Map([
   ["/Dashboard", 1],
   ["/Articles", 2],
   ["/Albums", 3],
-  ["/About", 4],
+  ["/Comments", 4],
+  ["/Accounts", 5],
+  ["/About", 6],
 ]);
 
 // 封装：根据当前路由获取对应索引，设置位置
@@ -45,24 +47,34 @@ onBeforeRouteUpdate((to) => {
     <ul>
       <li>
         <RouterLink to="/Dashboard"
-          ><icon-ic:outline-home /><span>Dashboard</span></RouterLink
+          ><icon-ic:outline-home /><span>仪表盘</span></RouterLink
         >
       </li>
       <li>
         <RouterLink to="/Articles"
           ><icon-fluent:content-view-24-regular /><span
-            >Articles</span
+            >文章管理</span
           ></RouterLink
         >
       </li>
       <li>
         <RouterLink to="/Albums"
-          ><icon-tabler:photo /><span>Albums</span></RouterLink
+          ><icon-tabler:photo /><span>照片管理</span></RouterLink
+        >
+      </li>
+      <li>
+        <RouterLink to="/Comments"
+          ><icon-tabler:message-circle /><span>评论管理</span></RouterLink
+        >
+      </li>
+      <li>
+        <RouterLink to="/Accounts"
+          ><icon-mdi:account-cog-outline /><span>账号管理</span></RouterLink
         >
       </li>
       <li>
         <RouterLink to="/About"
-          ><icon-tabler-user-circle /><span>About</span></RouterLink
+          ><icon-tabler-user-circle /><span>关于</span></RouterLink
         >
       </li>
       <div class="indicator" :style="{ left: leftY }"></div>
@@ -82,7 +94,7 @@ onBeforeRouteUpdate((to) => {
   & > ul {
     display: grid;
     position: relative;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(6, 1fr);
     width: 100%;
     height: 100%;
     & > li {

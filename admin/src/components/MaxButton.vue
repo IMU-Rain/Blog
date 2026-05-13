@@ -3,11 +3,11 @@ import { colorToRgba } from "@/utils/color";
 import { Icon } from "@iconify/vue";
 import { computed } from "vue";
 const props = withDefaults(
-  defineProps<{ height: number|string; color: string; icon: string }>(),
+  defineProps<{ height?: number | string; color?: string; icon?: string }>(),
   {
     height: 18,
     color: "text",
-    icon: "#4f7fb7",
+    icon: "",
   },
 );
 const fontSize = props.height + "px";

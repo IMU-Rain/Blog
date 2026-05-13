@@ -13,6 +13,8 @@ declare module 'vue' {
   export interface GlobalComponents {
     'IconFluent:contentView24Regular': typeof import('~icons/fluent/content-view24-regular')['default']
     'IconIc:outlineHome': typeof import('~icons/ic/outline-home')['default']
+    'IconMdi:accountCogOutline': typeof import('~icons/mdi/account-cog-outline')['default']
+    'IconTabler:messageCircle': typeof import('~icons/tabler/message-circle')['default']
     'IconTabler:photo': typeof import('~icons/tabler/photo')['default']
     IconTablerUserCircle: typeof import('~icons/tabler/user-circle')['default']
     MaxBar: typeof import('./src/components/MaxBar.vue')['default']

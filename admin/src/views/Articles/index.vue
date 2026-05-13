@@ -109,7 +109,7 @@ const tableConfig: PlusColumn<TableRow>[] = [
     },
   },
   {
-    label: "时间",
+    label: "创建时间",
     prop: "createAt",
     align: "center",
     valueType: "date-picker",

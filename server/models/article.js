@@ -18,6 +18,11 @@ const articleSchema = new mongoose.Schema({
     trim: true,
     maxlength: 500,
   },
+  toc: {
+    type: String,
+    trim: true,
+    default: "",
+  },
   status: {
     type: String,
     enum: ["default", "published", "archived"],

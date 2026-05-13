@@ -8,19 +8,34 @@
     </router-view>
   </main>
   <BackToTop class="back-to-top-btn" />
+  <LoginModal />
 </template>
 
 <script setup lang="ts">
 import BackToTop from "./components/BackToTop.vue";
+import LoginModal from "./components/LoginModal.vue";
 import MainNav from "./components/MainNav.vue";
 import { onMounted, onUnmounted } from "vue";
+import axios from "axios";
+import { getCurrentUser } from "./api/account";
 import { useScrollsStore } from "./store/pinia";
+import { useUserStore } from "./store/user";
 const scrollStore = useScrollsStore();
+const userStore = useUserStore();
 const handleScroll = () => {
   scrollStore.updateScroll(window.scrollY);
 };
 onMounted(() => {
   window.addEventListener("scroll", handleScroll);
+  getCurrentUser()
+    .then((user) => {
+      userStore.setUser(user);
+    })
+    .catch((err) => {
+      if (axios.isAxiosError(err) && err.response?.status === 401) {
+        userStore.clearUser();
+      }
+    });
 });
 onUnmounted(() => {
   window.removeEventListener("scroll", handleScroll);

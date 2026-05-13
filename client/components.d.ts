@@ -12,12 +12,16 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     Article: typeof import('./src/components/Article.vue')['default']
+    ArticleExpert: typeof import('./src/components/ArticleExpert.vue')['default']
+    ArticleToc: typeof import('./src/components/ArticleToc.vue')['default']
     Aside: typeof import('./src/components/Aside.vue')['default']
     BackToTop: typeof import('./src/components/BackToTop.vue')['default']
+    CommentAside: typeof import('./src/components/CommentAside.vue')['default']
     DuxiuIndex: typeof import('./src/components/DuxiuIndex.vue')['default']
     DuxiuIndexAside: typeof import('./src/components/DuxiuIndexAside.vue')['default']
     ErrorSkeleton: typeof import('./src/components/ErrorSkeleton.vue')['default']
     LoadingSkeleton: typeof import('./src/components/LoadingSkeleton.vue')['default']
+    LoginModal: typeof import('./src/components/LoginModal.vue')['default']
     MainNav: typeof import('./src/components/MainNav.vue')['default']
     Photo: typeof import('./src/components/Photo.vue')['default']
     PhotoDetail: typeof import('./src/components/PhotoDetail.vue')['default']

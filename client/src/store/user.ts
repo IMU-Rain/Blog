@@ -6,13 +6,34 @@ export const useUserStore = defineStore(
   () => {
     const user = ref<null | user>(null);
     const isLogged = ref(false);
+    const isLoginModalOpen = ref(false);
     const setUser = (data: user) => {
       user.value = data;
       isLogged.value = true;
     };
-    return { user, setUser, isLogged };
+    const clearUser = () => {
+      user.value = null;
+      isLogged.value = false;
+    };
+    const openLoginModal = () => {
+      isLoginModalOpen.value = true;
+    };
+    const closeLoginModal = () => {
+      isLoginModalOpen.value = false;
+    };
+    return {
+      user,
+      setUser,
+      clearUser,
+      isLogged,
+      isLoginModalOpen,
+      openLoginModal,
+      closeLoginModal,
+    };
   },
   {
-    persist: true,
-  }
+    persist: {
+      pick: ["user", "isLogged"],
+    },
+  },
 );

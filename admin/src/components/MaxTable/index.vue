@@ -66,7 +66,7 @@
                   'btn-' + getButtonProps(button, row).size,
                   { 'is-plain': getButtonProps(button, row).plain }
                 ]"
-                :icon="resolveButtonIcon(button)"
+                :icon="resolveButtonIcon(button) || ''"
                 :height="getButtonHeight(getButtonProps(button, row).size)"
                 :color="getButtonColor(getButtonProps(button, row).type)"
                 :disabled="getButtonProps(button, row).disabled"

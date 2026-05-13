@@ -17,18 +17,34 @@
       </button>
       <div class="photo-detail" @click.stop>
         <div class="photo-stage">
-          <img
-            v-show="isImageLoading"
-            :src="photoData.bigThumbUrl"
-            class="photo"
-            @load="isImageLoading = true"
-          />
-          <div
-            class="img-skeleton"
-            :style="{ width: scaledWidth + 'px', height: scaledHeight + 'px' }"
-            v-if="!isImageLoading"
-          >
-            Loading...
+          <div class="photo-view">
+            <img
+              v-show="isImageLoading"
+              :src="photoData.bigThumbUrl"
+              class="photo"
+              @load="isImageLoading = true"
+            />
+            <div
+              class="img-skeleton"
+              :style="{ width: scaledWidth + 'px', height: scaledHeight + 'px' }"
+              v-if="!isImageLoading"
+            >
+              Loading...
+            </div>
+            <div class="danmu-layer" aria-hidden="true">
+              <div
+                v-for="item in danmuItems"
+                :key="item.id"
+                class="danmu-item"
+                :style="{
+                  top: item.top + '%',
+                  animationDuration: item.duration + 's',
+                }"
+                @animationend="removeDanmu(item.id)"
+              >
+                {{ item.text }}
+              </div>
+            </div>
           </div>
         </div>
         <section class="photo-info">
@@ -57,6 +73,30 @@
             </li>
           </ul>
         </section>
+
+        <form class="photo-danmu-form" @submit.prevent="submitComment">
+          <input
+            v-model="draft"
+            type="text"
+            maxlength="1000"
+            class="danmu-input"
+            placeholder="发条弹幕评论…"
+            autocomplete="off"
+            aria-label="照片弹幕评论"
+          />
+          <button
+            type="submit"
+            class="danmu-send"
+            :disabled="submitting || !draft.trim()"
+          >
+            {{ submitting ? "发送中" : "发送" }}
+          </button>
+          <span
+            class="danmu-form-msg"
+            :class="{ error: Boolean(formError), hidden: !formError }"
+            >{{ formError || " " }}</span
+          >
+        </form>
       </div>
       <button
         class="switch-btn right btn"
@@ -77,16 +117,179 @@
 </template>
 
 <script lang="ts" setup name="PhotoDetail">
-import { toRef, ref, onMounted, watch, computed, onBeforeUnmount } from "vue";
+import axios from "axios";
+import {
+  toRef,
+  ref,
+  onMounted,
+  watch,
+  computed,
+  onBeforeUnmount,
+} from "vue";
 import type { PhotoType } from "../types/photo";
+import type { CommentItem } from "../types/comment";
 import dayjs from "dayjs";
+import { createComment, getComments } from "../api/comment";
+import { useUserStore } from "../store/user";
 
 const props = defineProps<{ photo: PhotoType; index: number }>();
 const photoIndex = toRef(props, "index");
 const photoData = toRef(props, "photo");
+const userStore = useUserStore();
 const isImageLoading = ref(false);
 const scaledWidth = ref(0);
 const scaledHeight = ref(0);
+
+const MAX_DANMU = 10;
+
+interface DanmuItem {
+  id: number;
+  text: string;
+  top: number;
+  duration: number;
+}
+
+let danmuSeq = 0;
+const danmuItems = ref<DanmuItem[]>([]);
+const commentsPool = ref<CommentItem[]>([]);
+const draft = ref("");
+const submitting = ref(false);
+const formError = ref("");
+let spawnTimer: ReturnType<typeof setInterval> | null = null;
+let loadGen = 0;
+let shownCommentIds = new Set<string>();
+
+const authorLabel = (c: CommentItem) =>
+  c.author?.nickname || c.author?.username || "匿名";
+
+const formatDanmuText = (c: CommentItem) => {
+  const line = `${authorLabel(c)}：${c.content}`;
+  return line.length > 48 ? `${line.slice(0, 45)}…` : line;
+};
+
+const removeDanmu = (id: number) => {
+  danmuItems.value = danmuItems.value.filter((d) => d.id !== id);
+};
+
+const pushDanmu = (text: string) => {
+  if (danmuItems.value.length >= MAX_DANMU) return;
+  danmuItems.value.push({
+    id: ++danmuSeq,
+    text,
+    // 仅出现在图片上方 1/3 区域（留一点上下边距）
+    top: 6 + Math.random() * 26,
+    duration: 9 + Math.random() * 7,
+  });
+};
+
+const stopDanmuLoop = () => {
+  if (spawnTimer) {
+    clearInterval(spawnTimer);
+    spawnTimer = null;
+  }
+};
+
+const startDanmuLoop = () => {
+  // 需求变更：弹幕只展示一次，不再循环刷
+  stopDanmuLoop();
+};
+
+const scheduleDanmuOnce = (list: CommentItem[], gen: number) => {
+  list.forEach((c, idx) => {
+    const cid = String(c._id || "");
+    if (cid && shownCommentIds.has(cid)) return;
+    if (cid) shownCommentIds.add(cid);
+    setTimeout(() => {
+      if (gen !== loadGen) return;
+      pushDanmu(formatDanmuText(c));
+    }, 350 + idx * 650);
+  });
+};
+
+const loadPhotoComments = async (photoId: string, gen: number) => {
+  let list: CommentItem[] = [];
+  try {
+    list = await getComments({
+      targetType: "photo",
+      targetId: photoId,
+    });
+  } catch {
+    list = [];
+  }
+  if (gen !== loadGen) return;
+  commentsPool.value = list;
+  scheduleDanmuOnce(list, gen);
+};
+
+const resetCommentsForPhoto = async (photoId: string | undefined) => {
+  const gen = ++loadGen;
+  stopDanmuLoop();
+  danmuItems.value = [];
+  draft.value = "";
+  formError.value = "";
+  shownCommentIds = new Set<string>();
+  if (!photoId) return;
+  await loadPhotoComments(photoId, gen);
+  if (gen !== loadGen) return;
+  startDanmuLoop();
+};
+
+const submitComment = async () => {
+  const content = draft.value.trim();
+  const pid = photoData.value?._id;
+  if (!content || submitting.value || !pid) return;
+  if (!userStore.isLogged) {
+    formError.value = "请先登录后评论";
+    userStore.openLoginModal();
+    return;
+  }
+  submitting.value = true;
+  formError.value = "";
+  try {
+    const comment = await createComment({
+      targetType: "photo",
+      targetId: pid,
+      content,
+    });
+    commentsPool.value = [...commentsPool.value, comment];
+    if (comment?._id) shownCommentIds.add(String(comment._id));
+    pushDanmu(formatDanmuText(comment));
+    draft.value = "";
+  } catch (err) {
+    if (axios.isAxiosError(err)) {
+      formError.value = err.response?.data?.detail || "评论发布失败";
+      if (err.response?.status === 401) {
+        userStore.clearUser();
+        userStore.openLoginModal();
+      }
+      return;
+    }
+    formError.value = "评论发布失败";
+  } finally {
+    submitting.value = false;
+  }
+};
+
+watch(
+  () => photoData.value?._id,
+  (id) => {
+    resetCommentsForPhoto(id);
+  },
+  { immediate: true },
+);
+
+watch(draft, () => {
+  if (formError.value) formError.value = "";
+});
+
+watch(
+  () => userStore.isLoginModalOpen,
+  (open, prevOpen) => {
+    if (!open && prevOpen && !userStore.isLogged) {
+      formError.value = "";
+    }
+  },
+);
 
 const photoTitle = computed(() => {
   return (
@@ -147,6 +350,7 @@ watch(photoData, getScaledSize);
 
 onBeforeUnmount(() => {
   window.removeEventListener("resize", handleResize);
+  stopDanmuLoop();
 });
 
 const emit = defineEmits<{
@@ -269,19 +473,141 @@ const emit = defineEmits<{
       width: 100%;
       min-height: 220px;
       display: flex;
-      justify-content: center;
-      align-items: center;
+      flex-direction: column;
+      align-items: stretch;
       border-radius: 14px;
       background: color-mix(in srgb, var(--panel-color) 66%, transparent);
       border: 1px solid color-mix(in srgb, var(--line-color) 84%, transparent);
       overflow: hidden;
     }
 
+    .photo-view {
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+      min-height: 200px;
+      padding: 10px;
+    }
+
+    .danmu-layer {
+      container-type: inline-size;
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      pointer-events: none;
+      z-index: 2;
+      border-radius: 12px;
+    }
+
+    .danmu-item {
+      position: absolute;
+      left: 100%;
+      white-space: nowrap;
+      max-width: min(92cqw, 560px);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-size: clamp(16px, 1.25vw, 20px);
+      font-weight: 800;
+      line-height: 1.35;
+      letter-spacing: 0.02em;
+      color: #fff;
+      text-shadow:
+        0 0 8px rgba(0, 0, 0, 0.85),
+        0 1px 2px rgba(0, 0, 0, 0.55);
+      animation-name: photo-danmu-slide;
+      animation-timing-function: linear;
+      animation-fill-mode: forwards;
+    }
+
+    .photo-danmu-form {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 14px;
+      border-radius: 14px;
+      border: 1px solid color-mix(in srgb, var(--line-color) 82%, transparent);
+      background: color-mix(in srgb, var(--panel-color) 72%, transparent);
+    }
+
+    .danmu-input {
+      flex: 1 1 180px;
+      min-width: 0;
+      height: 38px;
+      padding: 0 12px;
+      border-radius: 999px;
+      border: 1px solid var(--line-color);
+      color: var(--text-color);
+      background: color-mix(
+        in srgb,
+        var(--panel-color) 42%,
+        var(--surface-color)
+      );
+      outline: none;
+      transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
+
+      &:focus {
+        border-color: color-mix(
+          in srgb,
+          var(--primary-color) 58%,
+          var(--line-color)
+        );
+        box-shadow: 0 0 0 3px var(--primary-weak);
+      }
+
+      &::placeholder {
+        color: var(--text-muted);
+      }
+    }
+
+    .danmu-send {
+      flex: 0 0 auto;
+      height: 38px;
+      padding: 0 16px;
+      border-radius: 999px;
+      border: none;
+      color: var(--surface-color);
+      background: var(--primary-color);
+      font-weight: 700;
+      cursor: pointer;
+      transition:
+        opacity 0.2s ease,
+        transform 0.2s ease;
+
+      &:hover:not(:disabled) {
+        transform: translateY(-1px);
+      }
+
+      &:disabled {
+        cursor: not-allowed;
+        opacity: 0.5;
+      }
+    }
+
+    .danmu-form-msg {
+      grid-column: 1 / -1;
+      min-height: 16px;
+      font-size: 12px;
+      color: var(--text-muted);
+
+      &.error {
+        color: #c64545;
+      }
+
+      &.hidden {
+        visibility: hidden;
+      }
+    }
+
     .photo {
       width: auto;
       height: auto;
       max-width: 100%;
-      max-height: calc(100vh - 310px);
+      max-height: calc(100vh - 360px);
       border-radius: 12px;
       object-fit: contain;
       box-shadow: 0 14px 30px
@@ -367,6 +693,15 @@ const emit = defineEmits<{
     100% {
       background-position: -100% center;
     }
+  }
+}
+
+@keyframes photo-danmu-slide {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(calc(-100% - 100cqw));
   }
 }
 
